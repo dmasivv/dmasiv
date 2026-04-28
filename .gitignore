@@ -1,0 +1,48 @@
+# ── Xcode generated (regenerate with: xcodegen generate) ──────────────────────
+dmasiv.xcodeproj/
+
+# ── Xcode user-specific state ─────────────────────────────────────────────────
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+*.moved-aside
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+build/
+DerivedData/
+*.o
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ── Swift Package Manager ─────────────────────────────────────────────────────
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# ── CocoaPods (not used, but just in case) ────────────────────────────────────
+Pods/
+*.xcworkspace
+
+# ── macOS filesystem noise ────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ── Editor / IDE ──────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+*.pem
+*.p12
+*.mobileprovision
+AuthKey_*.p8
