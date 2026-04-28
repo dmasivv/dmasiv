@@ -4,12 +4,12 @@ An offline karaoke iOS app built with SwiftUI. Users choose a song, record thems
 
 ## Requirements
 
-| Tool | Version |
-|------|---------|
-| Xcode | 16+ (tested on 26.4) |
-| iOS Deployment Target | 17.0+ |
-| Swift | 5.0+ |
-| xcodegen | 2.x (only needed to regenerate the project file) |
+| Tool                  | Version                                          |
+| --------------------- | ------------------------------------------------ |
+| Xcode                 | 16+ (tested on 26.4)                             |
+| iOS Deployment Target | 17.0+                                            |
+| Swift                 | 5.0+                                             |
+| xcodegen              | 2.x (only needed to regenerate the project file) |
 
 ## Getting Started
 
@@ -71,8 +71,6 @@ SongListView  (NavigationStack root)
 ```
 dmasiv/
 ├── project.yml                          # xcodegen config — source of truth for the Xcode project
-├── generate_karaoke_boilerplate.sh      # regenerates the file scaffold (offline karaoke)
-├── generate_swiftui_boilerplate.sh      # generates a generic SwiftUI MVVM scaffold
 │
 └── dmasiv/                              # app source root
     ├── Info.plist
@@ -137,13 +135,13 @@ dmasiv/
 
 Colors are defined in `Shared/Theme/AppColors.swift` and backed by asset catalog entries in `Resources/Assets.xcassets/`. To change a color, edit the `.colorset` in Xcode's asset editor — no code changes needed.
 
-| Token | Usage |
-|-------|-------|
-| `AppColors.primary` | Main brand color |
-| `AppColors.secondary` | Supporting color |
-| `AppColors.accent` | Highlights and CTAs |
-| `AppColors.background` | Page backgrounds |
-| `AppColors.surface` | Cards and containers |
+| Token                  | Usage                |
+| ---------------------- | -------------------- |
+| `AppColors.primary`    | Main brand color     |
+| `AppColors.secondary`  | Supporting color     |
+| `AppColors.accent`     | Highlights and CTAs  |
+| `AppColors.background` | Page backgrounds     |
+| `AppColors.surface`    | Cards and containers |
 
 ---
 
