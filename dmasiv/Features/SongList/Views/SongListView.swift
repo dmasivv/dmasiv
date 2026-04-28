@@ -9,6 +9,7 @@ struct SongListView: View {
         title: "Sample Song",
         artist: "Sample Artist",
         audioFileName: "sample.mp3",
+        vocalistFileName: "sample.mid",
         lyricFileName: "sample.lrc",
         coverImageName: nil
     )
