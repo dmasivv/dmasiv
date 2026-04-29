@@ -28,10 +28,19 @@ class LyricParser {
                        let sec = TimeInterval(timeParts[1]) {
                         
                         let totalSeconds = (min * 60) + sec
-                        parsedLyrics.append(LyricLine(text: text, timestamp: totalSeconds))
+                        // Default endTime = startTime + 4.0 (will be refined below)
+                        parsedLyrics.append(LyricLine(text: text, startTime: totalSeconds, endTime: totalSeconds + 4.0))
                     }
                 }
             }
+            
+            // Calculate endTime: each lyric ends just before the next one starts
+            for i in 0..<parsedLyrics.count {
+                if i < parsedLyrics.count - 1 {
+                    parsedLyrics[i].endTime = parsedLyrics[i + 1].startTime - 0.1
+                }
+            }
+            
             return parsedLyrics
         } catch {
             print("LyricParser: Gagal membaca file - \(error)")

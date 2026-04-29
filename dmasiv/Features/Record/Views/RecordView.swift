@@ -22,7 +22,7 @@ struct RecordView: View {
                 TimelineAreaView(viewModel: viewModel)
                     .padding(.horizontal)
                 
-                RecordLyricAreaView(lyricText: viewModel.activeLyric?.text)
+                RecordLyricAreaView(lyricText: viewModel.activeLyric?.text, progress: viewModel.lyricProgress)
                 
                 RecordPitchIndicatorView(pitch: viewModel.currentPitch, midiNote: viewModel.currentMidiNote)
                 
@@ -61,12 +61,11 @@ struct RecordHeaderView: View {
 
 struct RecordLyricAreaView: View {
     let lyricText: String?
+    let progress: CGFloat
     
     var body: some View {
         if let text = lyricText {
-            // Karena struktur LyricLine baru hanya punya 1 timestamp,
-            // kita buat progress buatan untuk prototype
-            KaraokeLyricView(text: text, progress: 1.0)
+            KaraokeLyricView(text: text, progress: progress)
                 .padding(.vertical, 10)
         } else {
             Text("🎵")
@@ -223,10 +222,19 @@ struct WaveformVisualizerView: View {
     var body: some View {
         HStack(spacing: 4.0) {
             ForEach(0..<viewModel.audioLevels.count, id: \.self) { index in
+                let level = viewModel.audioLevels[index]
+                
+                // Threshold: Jika volume di bawah 0.3, anggap sebagai hening (hening = titik kecil)
+                let isSilent = level < 0.3
+                
+                // Tinggi titik hening adalah 1.0. Jika bersuara, kalikan levelnya.
+                let barHeight: CGFloat = isSilent ? 1.0 : max(1.5, level * 80.0)
+                
                 RoundedRectangle(cornerRadius: 2.0)
                     .fill(viewModel.isRecording ? Color.green : Color.gray.opacity(0.3))
-                    .frame(width: 6.0, height: max(10.0, viewModel.audioLevels[index] * 80.0))
-                    .animation(.easeInOut(duration: 0.1), value: viewModel.audioLevels[index])
+                    .frame(width: 6.0, height: barHeight)
+                    // Menggunakan animasi Spring agar gerakannya kenyal dan mulus seperti aplikasi native iOS
+                    .animation(.spring(response: 0.15, dampingFraction: 0.7), value: barHeight)
             }
         }
         .frame(height: 80.0)
