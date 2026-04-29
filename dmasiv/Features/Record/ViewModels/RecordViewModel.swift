@@ -20,6 +20,13 @@ class RecordViewModel: ObservableObject {
     @Published var activeLyric: LyricLine?
     @Published var allNotes: [MIDINote] = []
     
+    /// Progress karaoke lirik (0.0 – 1.0) untuk sweep warna
+    var lyricProgress: CGFloat {
+        guard let lyric = activeLyric else { return 0.0 }
+        let rawProgress = (currentTime - lyric.startTime) / (lyric.endTime - lyric.startTime)
+        return max(0.0, min(1.0, CGFloat(rawProgress)))
+    }
+    
     private var lyricsData: [LyricLine] = []
     private let pitchTracker = TrackUserPitch()
     private var audioPlayer: AVAudioPlayer?
@@ -89,7 +96,8 @@ class RecordViewModel: ObservableObject {
             isPlaying = true
             isRecording = true
             
-            playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            // Timer sinkronisasi menggunakan waktu dari MP3 (Master Clock)
+            playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
                 Task { @MainActor in self?.updatePlaybackProgress() }
             }
         } catch {
@@ -101,15 +109,17 @@ class RecordViewModel: ObservableObject {
         if let player = audioPlayer {
             currentTime = player.currentTime
         } else {
-            currentTime += 0.05
+            currentTime += 0.016
         }
-        recordingDuration += 0.05
+        recordingDuration += 0.016
         
-        // Update Lyric
-        if let nextLyricIndex = lyricsData.firstIndex(where: { $0.timestamp > currentTime }) {
-            if nextLyricIndex > 0 { activeLyric = lyricsData[nextLyricIndex - 1] }
+        // Update Active Lyric (sama seperti prototype MIDIPlayerManager)
+        if let currentL = lyricsData.first(where: { currentTime >= $0.startTime && currentTime <= $0.endTime }) {
+            if activeLyric?.id != currentL.id {
+                activeLyric = currentL
+            }
         } else {
-            activeLyric = lyricsData.last
+            activeLyric = nil
         }
     }
     
@@ -123,7 +133,7 @@ class RecordViewModel: ObservableObject {
                 
                 let safeLevel = level.isNaN ? 0.0 : CGFloat(level)
                 self.audioLevels.removeFirst()
-                self.audioLevels.append(safeLevel * 10.0)
+                self.audioLevels.append(safeLevel)
                 
                 if midiNote > 0 {
                     self.pitchHistory.append(PitchPoint(time: self.recordingDuration, midiNote: midiNote))
