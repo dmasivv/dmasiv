@@ -21,8 +21,7 @@ struct RecordView: View {
 
             VStack(spacing: 20) {
                 // Nama Lagu dan Artis
-                //RecordHeaderView(title: song.title, artist: song.artist)
-                SongTitleAndArtist()
+                SongTitleAndArtist(title: song.title, artist: song.artist)
                 
                 // Imitasi Smule
                 TimelineAreaView(viewModel: viewModel)
