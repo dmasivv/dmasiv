@@ -19,16 +19,13 @@ import SwiftUI
 //}
 
 struct SongTitleAndArtist: View {
-    let title: String
-    let artist: String
-    
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text("Januari")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
-                Text(artist)
+                Text("Glenn Fredly")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(.white.opacity(0.6))
             }
@@ -36,6 +33,7 @@ struct SongTitleAndArtist: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
+        .padding(.bottom, 10)
     }
 }
 
@@ -93,7 +91,7 @@ struct RecordControlsView: View {
 struct TimelineAreaView: View {
     @ObservedObject var viewModel: RecordViewModel
     
-    // How far ahead (in seconds) the timeline shows upcoming notes.
+    /// How far ahead (in seconds) the timeline shows upcoming notes.
     let lookaheadTime: TimeInterval = 5.0
     
     var body: some View {
@@ -115,7 +113,7 @@ struct TimelineAreaView: View {
                     GridLineView(label: "C4"); Spacer()
                     GridLineView(label: "C3")
                 }
-                .padding(.vertical, 10)
+                .padding(.vertical, 30)
                 .padding(.horizontal, 10)
 
                 // -- Reference MIDI notes (capsules) --

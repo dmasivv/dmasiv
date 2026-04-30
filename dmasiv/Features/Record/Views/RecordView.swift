@@ -13,7 +13,7 @@ struct RecordView: View {
         ZStack {
             // Background
             Color(red: 0.10, green: 0.08, blue: 0.15).ignoresSafeArea()
-
+            
             // Hidden Navigation ke Page 3
             NavigationLink(destination: Text("Halaman Result"), isActive: $navigateToResult) {
                 EmptyView()
@@ -21,21 +21,25 @@ struct RecordView: View {
 
             VStack(spacing: 20) {
                 // Nama Lagu dan Artis
-                SongTitleAndArtist(title: song.title, artist: song.artist)
-
+                SongTitleAndArtist()
+                
                 // Imitasi Smule
-                TimelineAreaView(viewModel: viewModel)
-                    .padding(.horizontal)
-
+                //TimelineAreaView(viewModel: viewModel)
+                //    .padding(.horizontal)
+                
                 // Lirik Musik
                 RefinedLyricAndBreathingNotation(viewModel: viewModel)
                     .padding(.horizontal)
-                    .padding(.top, 8)
-
+                
+                // Track User Pitch
+                //RecordPitchIndicatorView(pitch: viewModel.currentPitch, midiNote: viewModel.currentMidiNote)
+                
                 // Feedback Visual Suara
                 WaveformVisualizerView(viewModel: viewModel)
                     .padding(.horizontal)
-
+                
+                Spacer()
+                
                 // Button Start
                 RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
             }
@@ -51,7 +55,6 @@ struct RecordView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     RecordView(song: .Januari)
 }
