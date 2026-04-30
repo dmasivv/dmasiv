@@ -93,7 +93,7 @@ struct RecordControlsView: View {
 struct TimelineAreaView: View {
     @ObservedObject var viewModel: RecordViewModel
     
-    /// How far ahead (in seconds) the timeline shows upcoming notes.
+    // How far ahead (in seconds) the timeline shows upcoming notes.
     let lookaheadTime: TimeInterval = 5.0
     
     var body: some View {
@@ -115,7 +115,7 @@ struct TimelineAreaView: View {
                     GridLineView(label: "C4"); Spacer()
                     GridLineView(label: "C3")
                 }
-                .padding(.vertical, 30)
+                .padding(.vertical, 10)
                 .padding(.horizontal, 10)
 
                 // -- Reference MIDI notes (capsules) --
