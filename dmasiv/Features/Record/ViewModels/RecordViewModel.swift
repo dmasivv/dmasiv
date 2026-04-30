@@ -14,11 +14,12 @@ class RecordViewModel: ObservableObject {
     
     @Published var currentPitch: String = "--"
     @Published var currentMidiNote: Float = 0.0
-    @Published var audioLevels: [CGFloat] = Array(repeating: 0.0, count: 20)
+    @Published var audioLevels: [CGFloat] = Array(repeating: 0.0, count: 50)
     @Published var pitchHistory: [PitchPoint] = []
     
     @Published var activeLyric: LyricLine?
     @Published var allNotes: [MIDINote] = []
+    @Published var allLyrics: [LyricLine] = []
     
     /// Progress karaoke lirik (0.0 – 1.0) untuk sweep warna
     var lyricProgress: CGFloat {
@@ -27,7 +28,12 @@ class RecordViewModel: ObservableObject {
         return max(0.0, min(1.0, CGFloat(rawProgress)))
     }
     
-    private var lyricsData: [LyricLine] = []
+    /// Index of the current lyric line in allLyrics
+    var currentLyricIndex: Int? {
+        allLyrics.lastIndex { currentTime >= $0.startTime }
+    }
+    
+    private var lyricsData: [LyricLine] = [] { didSet { allLyrics = lyricsData } }
     private let pitchTracker = TrackUserPitch()
     private var audioPlayer: AVAudioPlayer?
     private var playbackTimer: Timer?
@@ -83,7 +89,7 @@ class RecordViewModel: ObservableObject {
         
         currentMidiNote = 0.0
         currentPitch = "--"
-        audioLevels = Array(repeating: 0.0, count: 20)
+        audioLevels = Array(repeating: 0.0, count: 50)
         activeLyric = nil
     }
     
