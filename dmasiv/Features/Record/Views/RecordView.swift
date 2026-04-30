@@ -35,9 +35,11 @@ struct RecordView: View {
                 // Track User Pitch
                 //RecordPitchIndicatorView(pitch: viewModel.currentPitch, midiNote: viewModel.currentMidiNote)
                 
+                // Feedback Visual Suara
                 WaveformVisualizerView(viewModel: viewModel)
                     .padding(.horizontal)
                                 
+                // Button Start
                 RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
             }
         }
