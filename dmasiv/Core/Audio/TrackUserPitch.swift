@@ -59,7 +59,7 @@ class TrackUserPitch {
         var rawMidiNote: Float = 0.0
         
         // Noise Gate: Diturunkan ke 0.002 agar mic jauh lebih sensitif
-        if rms > 0.015 {
+        if rms > 0.02 {
             let minFreq: Float = 80.0
             let maxFreq: Float = 1000.0
             
