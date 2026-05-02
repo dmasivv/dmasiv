@@ -477,3 +477,436 @@ struct RefinedLyricAndBreathingNotation: View {
         return CGFloat(min(max(progress, 0), 1))
     }
 }
+
+// ============================================================
+// MARK: - V2 Header with Album Art
+// ============================================================
+
+/// Header: album art (kiri) + judul & artis (kanan).
+/// HIG: minimum 44pt tap target, SF Rounded for consistency, 20pt edge insets.
+struct RecordHeaderViewV2: View {
+    let song: Song
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Album art atau placeholder — 100×100 (HIG: prominent media)
+            Group {
+                if let imageName = song.coverImageName,
+                   let uiImage = UIImage(named: imageName) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.3, green: 0.4, blue: 0.7),
+                                             Color(red: 0.2, green: 0.3, blue: 0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        Image(systemName: "music.note")
+                            .font(.system(size: 44, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                }
+            }
+            .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(song.title)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Text(song.artist)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundColor(.white.opacity(0.65))
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 35)  // HIG: consistent 30pt edge inset
+        .padding(.top, 15)
+    }
+}
+
+// ============================================================
+// MARK: - V2 Lyric Card
+// ============================================================
+
+/// Glass card yang menampilkan lirik: 3 baris lalu + aktif + 4 upcoming.
+struct LyricCardViewV2: View {
+    @ObservedObject var viewModel: RecordViewModel
+
+    private let maxVisibleLines = 8   // 3 past + 1 current + 4 upcoming
+    private let pastLineCount   = 3   // jumlah baris yang sudah lewat
+
+    private var visibleLyrics: [(index: Int, lyric: LyricLine)] {
+        guard let currentIdx = viewModel.currentLyricIndex else {
+            let end = min(maxVisibleLines, viewModel.allLyrics.count)
+            guard end > 0 else { return [] }
+            return (0..<end).map { (index: $0, lyric: viewModel.allLyrics[$0]) }
+        }
+        // 3 baris lalu + current + 4 upcoming
+        let start = max(0, currentIdx - pastLineCount)
+        let end   = min(start + maxVisibleLines, viewModel.allLyrics.count)
+        return (start..<end).map { (index: $0, lyric: viewModel.allLyrics[$0]) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(visibleLyrics.enumerated()), id: \.element.lyric.id) { _, item in
+                let isCurrent = item.index == viewModel.currentLyricIndex
+                let progress  = progressFor(index: item.index)
+
+                LyricRowWithBarView(lyric: item.lyric, isCurrent: isCurrent, progress: progress)
+            }
+
+            // Slot kosong agar card tidak mengecil saat baris sedikit (height konsisten)
+            if visibleLyrics.count < maxVisibleLines {
+                ForEach(0..<(maxVisibleLines - visibleLyrics.count), id: \.self) { _ in
+                    Color.clear.frame(height: 66)
+                }
+            }
+        }
+        .padding(.vertical, 24)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .liquidGlassBox(cornerRadius: 22)
+        .padding(.horizontal, 35)  // HIG: consistent 30pt edge inset
+        .padding(.top, 12)
+        .animation(.easeInOut(duration: 0.35), value: viewModel.currentLyricIndex)
+    }
+
+    private func progressFor(index: Int) -> CGFloat {
+        let lyric    = viewModel.allLyrics[index]
+        let duration = lyric.endTime - lyric.startTime
+        guard duration > 0 else { return 1.0 }
+        let p = (viewModel.currentTime - lyric.startTime) / duration
+        return CGFloat(min(max(p, 0), 1))
+    }
+}
+
+/// Satu baris lirik. Bar napas HANYA muncul untuk baris "BREATHE".
+/// HIG: font size ≥ 22pt untuk readability, consistent spacing.
+struct LyricRowWithBarView: View {
+    let lyric: LyricLine
+    let isCurrent: Bool
+    let progress: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if lyric.isBreathe {
+                // ── Baris BREATHE: bar napas animasi ─────────────────
+                BreathBarIndicatorView(
+                    progress: isCurrent ? progress : 1.0,
+                    isCurrent: isCurrent
+                )
+            } else if lyric.text.isEmpty {
+                // ── Jeda instrumental: tiga titik ────────────────────
+                HStack(spacing: 6) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        Circle()
+                            .fill(Color.white.opacity(isCurrent ? 0.3 : 0.12))
+                            .frame(width: 5, height: 5)
+                    }
+                }
+            } else {
+                // ── Baris lirik normal (TANPA bar) ──────────────────
+                Text(lyric.text)
+                    .font(.system(
+                        size: isCurrent ? 30 : 26,
+                        weight: isCurrent ? .bold : .regular,
+                        design: .rounded
+                    ))
+                    .foregroundColor(isCurrent ? .white : .white.opacity(0.40))
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.85)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        )
+                    )
+            }
+        }
+        .padding(.vertical, 10)
+    }
+}
+
+/// Bar kecil biru di bawah tiap baris lirik — indikator jeda napas.
+/// Lebar FIXED (bukan full-width), sesuai referensi:
+/// - Non-aktif: track 64pt, fill 64pt (solid dim)
+/// - Aktif: track 160pt, fill animasi sesuai progress
+struct BreathBarIndicatorView: View {
+    let progress: CGFloat
+    let isCurrent: Bool
+
+    // Lebar track background (referensi: aktif ~160pt, non-aktif ~64pt)
+    private var trackWidth: CGFloat { isCurrent ? 160 : 64 }
+    // Lebar fill minimum 8pt agar selalu ada sedikit warna biru
+    private var fillWidth: CGFloat {
+        isCurrent ? max(8, trackWidth * progress) : trackWidth
+    }
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            // Track background
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color.white.opacity(0.10))
+                .frame(width: trackWidth, height: 5)
+
+            // Fill biru ke putih sesuai referensi gambar
+            RoundedRectangle(cornerRadius: 3)
+                .fill(
+                    isCurrent
+                    ? LinearGradient(
+                        colors: [Color(red: 0.22, green: 0.41, blue: 0.85), // Biru kuat di kiri
+                                 Color.white],                              // Memutih di kanan
+                        startPoint: .leading,
+                        endPoint: .trailing
+                      )
+                    : LinearGradient(
+                        colors: [Color(red: 0.30, green: 0.50, blue: 0.85).opacity(0.55),
+                                 Color(red: 0.30, green: 0.50, blue: 0.85).opacity(0.55)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                      )
+                )
+                .frame(width: fillWidth, height: 5)
+                .shadow(color: .black.opacity(isCurrent ? 0.3 : 0.0), radius: 2, x: 0, y: 1) // Shadow lembut
+                .animation(.linear(duration: 0.06), value: progress)
+        }
+        .frame(height: 5, alignment: .leading)
+    }
+}
+
+// ============================================================
+// MARK: - V2 Playback Progress Slider
+// ============================================================
+
+/// Slider progress lagu dengan timestamp kiri (elapsed) dan kanan (total).
+struct PlaybackProgressView: View {
+    @ObservedObject var viewModel: RecordViewModel
+
+    private var progress: CGFloat {
+        guard let duration = viewModel.songDuration, duration > 0 else { return 0 }
+        return CGFloat(viewModel.currentTime / duration)
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(formatTime(viewModel.currentTime))
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(.white.opacity(0.45))
+                .frame(width: 36, alignment: .trailing)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+            // Track
+            Capsule()
+                .fill(Color.white.opacity(0.18))
+                .frame(height: 4) // Sedikit ditebalkan sesuai referensi
+
+            // Filled portion (Gradien biru ke putih)
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.22, green: 0.41, blue: 0.85), Color.white],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: max(0, geo.size.width * progress), height: 4)
+                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1) // Efek shadow
+
+            // Thumb
+            Circle()
+                        .fill(Color.white)
+                        .frame(width: 14, height: 14)
+                        .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
+                        .offset(x: (geo.size.width * progress) - 7)
+                }
+            }
+            .frame(height: 14)
+
+            Text(formatTime(viewModel.songDuration ?? 0))
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(.white.opacity(0.45))
+                .frame(width: 36, alignment: .leading)
+        }
+        .padding(.horizontal, 20)  // HIG: consistent 20pt edge inset
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let m = Int(seconds) / 60
+        let s = Int(seconds) % 60
+        return String(format: "%d:%02d", m, s)
+    }
+}
+
+// ============================================================
+// MARK: - V2 Waveform Visualizer
+// ============================================================
+
+/// Waveform bar yang lebih besar dan lebih visible. Bar putih saat recording,
+/// abu-abu saat idle. Animasi spring ringan.
+struct WaveformVisualizerViewV2: View {
+    @ObservedObject var viewModel: RecordViewModel
+
+    var body: some View {
+        HStack(spacing: 3.0) {
+            ForEach(0..<viewModel.audioLevels.count, id: \.self) { index in
+                let level = viewModel.audioLevels[index]
+                let isSilent = level < 0.25
+                let barHeight: CGFloat = isSilent ? 3.0 : max(4.0, level * 56.0)
+
+                RoundedRectangle(cornerRadius: 2.5)
+                    .fill(
+                        viewModel.isRecording
+                        ? Color.white.opacity(0.85)
+                        : Color.white.opacity(0.18)
+                    )
+                    .frame(width: 3.0, height: barHeight)
+                    .animation(.spring(response: 0.12, dampingFraction: 0.65), value: barHeight)
+            }
+        }
+        .frame(height: 56.0)
+    }
+}
+
+// ============================================================
+// MARK: - V2 Record Controls (Replay + Mic/Pause)
+// ============================================================
+
+/// Bottom control bar — HIG: min 44pt tap targets, primary action centered.
+/// - Mic/Pause: centered di tengah layar secara horizontal
+/// - Replay: di kiri tombol Mic
+struct RecordControlsViewV2: View {
+    @ObservedObject var viewModel: RecordViewModel
+    @Binding var navigateToResult: Bool
+
+    var body: some View {
+        ZStack {
+            // ── Mic / Pause (centered horizontal) ────────────────────────
+            Button(action: {
+                viewModel.togglePlayAndRecord()
+            }) {
+                ZStack {
+                    // Background gradasi dalam tombol
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(red: 0.18, green: 0.30, blue: 0.60),   // Biru gelap
+                                         Color(red: 0.10, green: 0.18, blue: 0.45)], // Biru sangat gelap pekat
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 90, height: 90)
+
+                    // Outer ring tebal solid putih
+                    Circle()
+                        .stroke(Color.white, lineWidth: 4.5)
+                        .frame(width: 90, height: 90)
+
+                    // Icon putih tebal tanpa fill background
+                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic.fill")
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+
+            // ── Replay (kiri dari mic) ────────────────────────────────────
+            HStack {
+                Button(action: {
+                    viewModel.replayRecording()
+                }) {
+                    ZStack {
+                        // Background gradasi dalam tombol
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.18, green: 0.30, blue: 0.60),   // Biru gelap
+                                             Color(red: 0.10, green: 0.18, blue: 0.45)], // Biru sangat gelap pekat
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 52, height: 52)
+
+                        // Border tipis solid putih
+                        Circle()
+                            .stroke(Color.white, lineWidth: 1.2)
+                            .frame(width: 52, height: 52)
+                        
+                        // Icon arrow tebal solid putih
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding(.leading, 75)
+
+                Spacer()
+            }
+        }
+        .frame(maxWidth: .infinity)
+//        .padding(.bottom, 1)
+
+        // ── "Selesai" (Done) button — navigate to Result page ────────────
+//        if viewModel.isRecording || viewModel.pitchHistory.count > 0 {
+//            Button("Selesai") {
+//                viewModel.stopRecording()
+//                navigateToResult = true
+//            }
+//            .padding(.horizontal, 30)
+//            .padding(.vertical, 15)
+//            .background(Color.green)
+//            .foregroundColor(.white)
+//            .cornerRadius(25)
+//            .font(.headline)
+//        }
+    }
+}
+
+// ============================================================
+// MARK: - Liquid Glass Box Modifier
+// ============================================================
+
+struct LiquidGlassBoxModifier: ViewModifier {
+    var cornerRadius: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            // 1. Efek Kaca Transparan (Atur opacity di sini jika ingin lebih/kurang tembus pandang)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.07) // Semakin kecil angkanya (misal 0.1), semakin transparan
+            )
+            // 2. Highlight / Pinggiran bercahaya
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.white.opacity(0.5), .white.opacity(0.05), .white.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2.5
+                    )
+            )
+            // 4. Shadow lembut di bawah box
+            .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 10)
+    }
+}
+
+extension View {
+    /// Memberikan efek Liquid Glass (kaca buram dengan highlight gradient)
+    func liquidGlassBox(cornerRadius: CGFloat = 22) -> some View {
+        self.modifier(LiquidGlassBoxModifier(cornerRadius: cornerRadius))
+    }
+}
