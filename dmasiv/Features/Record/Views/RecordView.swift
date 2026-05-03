@@ -14,10 +14,10 @@ struct RecordView: View {
             // ── Background: atas agak terang, tengah gelap, bawah kembali terang (soft) ──
             LinearGradient(
                 stops: [
-                    Gradient.Stop(color: Color(red: 0.16, green: 0.25, blue: 0.50), location: 0.0),   // Atas: Terangnya sedikit diturunkan agar lebih soft
-                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.25),  // Jarak transisi diperpanjang agar lebih smooth
-                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.45),  // Area gelap tetap luas
-                    Gradient.Stop(color: Color(red: 0.15, green: 0.23, blue: 0.48), location: 1.0)    // Bawah: Kembali menerang (soft)
+                    Gradient.Stop(color: Color(red: 0.16, green: 0.25, blue: 0.50), location: 0.0),
+                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.25),
+                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.45),
+                    Gradient.Stop(color: Color(red: 0.15, green: 0.23, blue: 0.48), location: 1.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -52,23 +52,13 @@ struct RecordView: View {
 
             /* ── Komponen lama (di-disable, TIDAK dihapus) ─────────────────
             VStack(spacing: 20) {
-                // Nama Lagu dan Artis
                 SongTitleAndArtist(title: song.title, artist: song.artist)
-
-                // Imitasi Smule
                 TimelineAreaView(viewModel: viewModel)
                     .padding(.horizontal)
-
-                // Lirik Musik
                 RefinedLyricAndBreathingNotation(viewModel: viewModel)
                     .padding(.horizontal)
-                    .padding(.top, 8)
-
-                // Feedback Visual Suara
                 WaveformVisualizerView(viewModel: viewModel)
                     .padding(.horizontal)
-
-                // Button Start
                 RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
             }
             ─────────────────────────────────────────────────────────────── */
@@ -84,7 +74,6 @@ struct RecordView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     RecordView(song: .Januari)
 }

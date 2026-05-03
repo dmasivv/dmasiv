@@ -9,7 +9,7 @@ import SwiftUI
 //struct RecordHeaderView: View {
 //    let title: String
 //    let artist: String
-//    
+//
 //    var body: some View {
 //        Text("\(title) - \(artist)")
 //            .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -32,7 +32,17 @@ struct SongTitleAndArtist: View {
                     .font(.system(size: 14, weight: .regular, design: .rounded))
                     .foregroundColor(.white.opacity(0.6))
             }
+            
             Spacer()
+            
+            NavigationLink(destination: RecordingsListView()) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(10)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
+            }
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
@@ -44,43 +54,68 @@ struct SongTitleAndArtist: View {
 // ============================================================
 
 /// Bottom control bar with play/stop (mic) toggle button.
-/// Also holds the (currently commented-out) "Selesai" navigation button.
+/// Also holds the "Selesai" navigation button which saves the vocal recording.
 struct RecordControlsView: View {
     @ObservedObject var viewModel: RecordViewModel
     @Binding var navigateToResult: Bool
     
     var body: some View {
-        HStack(spacing: 40) {
-            // Play / Stop toggle
-            Button(action: {
-                viewModel.togglePlayAndRecord()
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(viewModel.isPlaying ? Color.white : Color.white)
-                        .frame(width: 72, height: 72)
-                    
-                    Image(systemName: viewModel.isPlaying ? "stop.fill" : "mic.fill")
-                        .font(.title)
-                        .foregroundColor(.black)
+        VStack(spacing: 16) {
+            // Recording saved confirmation toast
+            if viewModel.showSavedConfirmation, let url = viewModel.savedRecordingURL {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Rekaman disimpan!")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             
-            // "Selesai" (Done) button — navigate to Result page
-//            if viewModel.isRecording || viewModel.pitchHistory.count > 0 {
-//                Button("Selesai") {
-//                    viewModel.stopRecording()
-//                    navigateToResult = true
-//                }
-//                .padding(.horizontal, 30)
-//                .padding(.vertical, 15)
-//                .background(Color.green)
-//                .foregroundColor(.white)
-//                .cornerRadius(25)
-//                .font(.headline)
-//            }
+            HStack(spacing: 40) {
+                // Play / Stop toggle
+                Button(action: {
+                    viewModel.togglePlayAndRecord()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(viewModel.isPlaying ? Color.white : Color.white)
+                            .frame(width: 72, height: 72)
+                        
+                        Image(systemName: viewModel.isPlaying ? "stop.fill" : "mic.fill")
+                            .font(.title)
+                            .foregroundColor(.black)
+                    }
+                }
+                
+                // "Selesai" (Done) button — stops recording, saves file, navigates to Result
+                if viewModel.isRecording || viewModel.pitchHistory.count > 0 {
+                    Button("Selesai") {
+                        viewModel.stopRecording()
+                        navigateToResult = false
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.vertical, 15)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(25)
+                    .font(.headline)
+                }
+            }
         }
         .padding(.bottom, 30)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.showSavedConfirmation)
     }
 }
 
@@ -115,7 +150,7 @@ struct TimelineAreaView: View {
                     GridLineView(label: "C4"); Spacer()
                     GridLineView(label: "C3")
                 }
-                .padding(.vertical, 10)
+//                .padding(.vertical, 10)
                 .padding(.horizontal, 10)
 
                 // -- Reference MIDI notes (capsules) --
