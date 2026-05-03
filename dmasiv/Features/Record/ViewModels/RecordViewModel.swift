@@ -11,6 +11,7 @@ class RecordViewModel: ObservableObject {
     @Published var isRecording = false
     @Published var currentTime: TimeInterval = 0.0
     @Published var recordingDuration: TimeInterval = 0.0
+    @Published var songDuration: TimeInterval? = nil
 
     /// URL of the last saved vocal recording (set after pressing "Selesai")
     @Published var savedRecordingURL: URL? = nil
@@ -21,6 +22,9 @@ class RecordViewModel: ObservableObject {
     @Published var currentMidiNote: Float = 0.0
     @Published var audioLevels: [CGFloat] = Array(repeating: 0.0, count: 50)
     @Published var pitchHistory: [PitchPoint] = []
+
+    // Flag agar pitchHistory tidak dihapus saat resume (hanya dihapus saat start fresh)
+    private var hasEverStarted = false
 
     @Published var activeLyric: LyricLine?
     @Published var allNotes: [MIDINote] = []
@@ -39,7 +43,7 @@ class RecordViewModel: ObservableObject {
     }
 
     /// Daftar lagu yang tersedia — bersumber dari SongLibrary.swift
-    // let songs: [Song] = SongLibrary.all
+    //    let songs: [Song] = SongLibrary.all
 
     private var lyricsData: [LyricLine] = [] { didSet { allLyrics = lyricsData } }
     private let pitchTracker = TrackUserPitch()
@@ -65,6 +69,7 @@ class RecordViewModel: ObservableObject {
                 do {
                     self.audioPlayer = try AVAudioPlayer(contentsOf: url)
                     self.audioPlayer?.prepareToPlay()
+                    self.songDuration = self.audioPlayer?.duration
                 } catch {
                     print("Error loading audio: \(error)")
                 }
@@ -78,13 +83,38 @@ class RecordViewModel: ObservableObject {
 
     func togglePlayAndRecord() {
         if isPlaying {
-            stopRecording()
+            pauseRecording()   // CHANGED: pause di posisi saat ini, tidak reset ke awal
         } else {
             startRecording()
         }
     }
 
+    /// Pause audio di posisi saat ini tanpa mereset currentTime.
+    func pauseRecording() {
+        isPlaying = false
+        isRecording = false
+
+        audioPlayer?.pause()        // pause tanpa reset posisi
+        pitchTracker.stop()
+        playbackTimer?.invalidate()
+
+        currentMidiNote = 0.0
+        currentPitch = "--"
+        audioLevels = Array(repeating: 0.0, count: 50)
+    }
+
+    /// Restart rekaman dari awal lagu.
+    func replayRecording() {
+        stopRecording()             // reset posisi ke 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            Task { @MainActor in
+                self.startRecording()
+            }
+        }
+    }
+
     func stopRecording() {
+        hasEverStarted = false      // reset flag agar next start bersihkan pitchHistory
         isPlaying = false
         isRecording = false
 
@@ -108,11 +138,15 @@ class RecordViewModel: ObservableObject {
         activeLyric = nil
     }
 
-    private func startRecording() {
+    func startRecording() {
         do {
-            pitchHistory.removeAll()
-            savedRecordingURL = nil
-            showSavedConfirmation = false
+            // Hanya hapus history saat start fresh, bukan saat resume dari pause
+            if !hasEverStarted {
+                pitchHistory.removeAll()
+                savedRecordingURL = nil
+                showSavedConfirmation = false
+                hasEverStarted = true
+            }
 
             try pitchTracker.start()
 
