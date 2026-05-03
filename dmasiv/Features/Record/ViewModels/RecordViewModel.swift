@@ -12,6 +12,11 @@ class RecordViewModel: ObservableObject {
     @Published var currentTime: TimeInterval = 0.0
     @Published var recordingDuration: TimeInterval = 0.0
 
+    /// URL of the last saved vocal recording (set after pressing "Selesai")
+    @Published var savedRecordingURL: URL? = nil
+    /// Flag to show a "recording saved" confirmation
+    @Published var showSavedConfirmation = false
+
     @Published var currentPitch: String = "--"
     @Published var currentMidiNote: Float = 0.0
     @Published var audioLevels: [CGFloat] = Array(repeating: 0.0, count: 50)
@@ -34,10 +39,11 @@ class RecordViewModel: ObservableObject {
     }
 
     /// Daftar lagu yang tersedia — bersumber dari SongLibrary.swift
-    let songs: [Song] = SongLibrary.all
+    // let songs: [Song] = SongLibrary.all
 
     private var lyricsData: [LyricLine] = [] { didSet { allLyrics = lyricsData } }
     private let pitchTracker = TrackUserPitch()
+    private let voiceRecorder = RecordAudio()
     private var audioPlayer: AVAudioPlayer?
     private var playbackTimer: Timer?
 
@@ -90,6 +96,12 @@ class RecordViewModel: ObservableObject {
         pitchTracker.stop()
         playbackTimer?.invalidate()
 
+        // Save the vocal recording
+        if let url = voiceRecorder.stopRecording() {
+            savedRecordingURL = url
+            showSavedConfirmation = true
+        }
+
         currentMidiNote = 0.0
         currentPitch = "--"
         audioLevels = Array(repeating: 0.0, count: 50)
@@ -99,7 +111,15 @@ class RecordViewModel: ObservableObject {
     private func startRecording() {
         do {
             pitchHistory.removeAll()
+            savedRecordingURL = nil
+            showSavedConfirmation = false
+
             try pitchTracker.start()
+
+            // Start recording the user's voice
+            let songTitle = currentSong?.title ?? "Recording"
+            try voiceRecorder.startRecording(songTitle: songTitle)
+
             audioPlayer?.play()
 
             isPlaying = true

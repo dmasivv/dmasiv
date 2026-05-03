@@ -10,48 +10,52 @@ struct RecordView: View {
     @State private var navigateToResult = false
 
     var body: some View {
-        ZStack {
-            // Background
-            Color(red: 0.10, green: 0.08, blue: 0.15).ignoresSafeArea()
-
-            // Hidden Navigation ke Page 3
-            NavigationLink(destination: Text("Halaman Result"), isActive: $navigateToResult) {
-                EmptyView()
+        NavigationStack {
+            ZStack {
+                // Background
+                Color(red: 0.10, green: 0.08, blue: 0.15).ignoresSafeArea()
+                
+                // Hidden Navigation ke Page 3
+                NavigationLink(destination: Text("Halaman Result"), isActive: $navigateToResult) {
+                    EmptyView()
+                }
+                
+                VStack(spacing: 20) {
+                    // Nama Lagu dan Artis
+                    SongTitleAndArtist(title: song.title, artist: song.artist)
+                    
+                    // Imitasi Smule
+                    TimelineAreaView(viewModel: viewModel)
+                        .padding(.horizontal)
+                    
+                    // Lirik Musik
+                    RefinedLyricAndBreathingNotation(viewModel: viewModel)
+                        .padding(.horizontal)
+                    
+                    // Track User Pitch
+                    //RecordPitchIndicatorView(pitch: viewModel.currentPitch, midiNote: viewModel.currentMidiNote)
+                    
+                    // Feedback Visual Suara
+                    WaveformVisualizerView(viewModel: viewModel)
+                        .padding(.horizontal)
+                    
+                                        
+                    // Button Start
+                    RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
+                }
             }
-
-            VStack(spacing: 20) {
-                // Nama Lagu dan Artis
-                SongTitleAndArtist(title: song.title, artist: song.artist)
-
-                // Imitasi Smule
-                TimelineAreaView(viewModel: viewModel)
-                    .padding(.horizontal)
-
-                // Lirik Musik
-                RefinedLyricAndBreathingNotation(viewModel: viewModel)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
-                // Feedback Visual Suara
-                WaveformVisualizerView(viewModel: viewModel)
-                    .padding(.horizontal)
-
-                // Button Start
-                RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Mencegah Preview (Canvas) minta izin Mic yang bisa bikin Crash
+                if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
+                    viewModel.requestMicrophonePermission()
+                }
+                viewModel.loadSong(song)
             }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            // Mencegah Preview (Canvas) minta izin Mic yang bisa bikin Crash
-            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
-                viewModel.requestMicrophonePermission()
-            }
-            viewModel.loadSong(song)
         }
     }
 }
 
-// MARK: - Preview
 #Preview {
     RecordView(song: .Januari)
 }
