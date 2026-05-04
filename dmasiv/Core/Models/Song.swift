@@ -38,12 +38,22 @@ let SongLibrary : [Song] = [
     ),
     Song(
         id: UUID(),
-        title: "Versace On The Floor",
-        artist: "Bruno Mars",
-        duration: "3:47",
-        audioFileName: "versaceOnTheFloor-bgm",
-        vocalistFileName: "versaceOnTheFloor-midi",
-        lyricFileName: "versaceOnTheFloor-lrc",
-        coverImageName: "cover_versaceOnTheFloor"
+        title: "Apalah (Arti Menunggu)",
+        artist: "Raisa",
+        duration: "3:34",
+        audioFileName: "apalah-bgm",
+        vocalistFileName: "apalah-midi",
+        lyricFileName: "apalah-lrc",
+        coverImageName: "cover_apalah"
+    ),
+    Song(
+        id: UUID(),
+        title: "Sempurna",
+        artist: "Andra and The Backbone",
+        duration: "4:25",
+        audioFileName: "sempurna-bgm",
+        vocalistFileName: "sempurna-midi",
+        lyricFileName: "sempurna-lrc",
+        coverImageName: "cover_sempurna"
     )
 ]

@@ -35,8 +35,7 @@ struct RecordView: View {
 
                 // ── Lyric Card (desain baru) ───────────────────────────────
                 LyricCardViewV2(viewModel: viewModel)
-
-                Spacer()
+                    .padding(.bottom, 10)
 
                 // ── Playback Progress Slider ───────────────────────────────
                 PlaybackProgressView(viewModel: viewModel)
