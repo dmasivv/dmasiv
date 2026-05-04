@@ -17,20 +17,20 @@ struct RecordingsListView: View {
     
     var body: some View {
         ZStack {
-            Color(red: 0.10, green: 0.08, blue: 0.15).ignoresSafeArea()
+            AppColors.backgroundScreen.ignoresSafeArea()
             
             if recordings.isEmpty {
                 // Empty state
                 VStack(spacing: 16) {
                     Image(systemName: "waveform.slash")
                         .font(.system(size: 50))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(AppColors.lyricActive.opacity(0.3))
                     Text("Belum ada rekaman")
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(AppColors.lyricActive.opacity(0.5))
                     Text("Mulai menyanyi dan tekan \"Selesai\"\nuntuk menyimpan rekaman.")
                         .font(.system(size: 14, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(AppColors.lyricActive.opacity(0.3))
                         .multilineTextAlignment(.center)
                 }
             } else {
@@ -45,7 +45,7 @@ struct RecordingsListView: View {
                                 showDeleteAlert = true
                             }
                         )
-                        .listRowBackground(Color.white.opacity(0.05))
+                        .listRowBackground(AppColors.overlaySubtle)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -127,30 +127,30 @@ struct RecordingRow: View {
             Button(action: onPlay) {
                 ZStack {
                     Circle()
-                        .fill(isPlaying ? Color.red.opacity(0.8) : Color.green.opacity(0.8))
+                        .fill(isPlaying ? AppColors.stateDanger : AppColors.stateSuccess.opacity(0.8))
                         .frame(width: 44, height: 44)
                     
                     Image(systemName: isPlaying ? "stop.fill" : "play.fill")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.lyricActive)
                 }
             }
             .buttonStyle(.plain)
-            
+
             // Recording info
             VStack(alignment: .leading, spacing: 4) {
                 Text(recording.name)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.lyricActive)
                     .lineLimit(1)
-                
+
                 HStack(spacing: 8) {
                     Text(recording.formattedDate)
                     Text("•")
                     Text(recording.formattedSize)
                 }
                 .font(.system(size: 12, design: .rounded))
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(AppColors.lyricActive.opacity(0.5))
             }
             
             Spacer()
@@ -159,7 +159,7 @@ struct RecordingRow: View {
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .font(.system(size: 16))
-                    .foregroundColor(.red.opacity(0.7))
+                    .foregroundColor(AppColors.stateDanger)
             }
             .buttonStyle(.plain)
         }
