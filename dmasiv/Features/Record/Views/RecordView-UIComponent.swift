@@ -35,7 +35,7 @@ struct SongTitleAndArtist: View {
             
             Spacer()
             
-            NavigationLink(destination: RecordingsListView()) {
+            NavigationLink(destination: HistoryView()) {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(AppColors.lyricActive)
@@ -795,8 +795,12 @@ struct WaveformVisualizerViewV2: View {
         HStack(spacing: 3.0) {
             ForEach(0..<viewModel.audioLevels.count, id: \.self) { index in
                 let level = viewModel.audioLevels[index]
-                let isSilent = level < 0.25
-                let barHeight: CGFloat = isSilent ? 3.0 : max(4.0, level * 56.0)
+                
+                // 1. Biarkan tinggi bar merespons level secara natural tanpa lompatan drastis.
+                // Jika ingin meredam "noise" kecil, kamu bisa mengurangi nilainya sedikit,
+                // tapi pastikan transisinya tetap mulus.
+                let smoothLevel = max(0, level - 0.05) // Sedikit noise gate (opsional)
+                let barHeight: CGFloat = max(2.0, smoothLevel * 100.0)
 
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(
@@ -805,10 +809,13 @@ struct WaveformVisualizerViewV2: View {
                         : AppColors.waveformIdle
                     )
                     .frame(width: 3.0, height: barHeight)
-                    .animation(.spring(response: 0.12, dampingFraction: 0.65), value: barHeight)
+                    
+                    // 2. Gunakan easeOut dengan durasi yang mendekati interval timer di ViewModel kamu (biasanya 0.1 - 0.15 detik).
+                    // Ini akan membuat batang memanjang dan menyusut seperti bernapas, bukan memantul.
+                    .animation(.easeOut(duration: 0.15), value: barHeight)
             }
         }
-        .frame(height: 56.0)
+        .frame(height: 100.0)
     }
 }
 

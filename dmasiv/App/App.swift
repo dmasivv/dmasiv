@@ -4,8 +4,7 @@ import SwiftUI
 struct Application: App {
     var body: some Scene {
         WindowGroup {
-//          SongListView()
-            RecordView(song: .Januari) // Langsung Build Ke Page 2
+            SongListView() // Build Ke Page 1
         }
     }
 }
