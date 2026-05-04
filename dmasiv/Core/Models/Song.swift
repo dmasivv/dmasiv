@@ -19,6 +19,6 @@ extension Song {
         audioFileName: "januari-bgm",
         vocalistFileName: "januari-midi",
         lyricFileName: "januari-lrc",
-        coverImageName: nil
+        coverImageName: "cover_januari"
     )
 }
