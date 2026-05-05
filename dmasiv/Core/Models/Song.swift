@@ -1,7 +1,7 @@
 import Foundation
 
 // Represents an offline song available in the app bundle
-struct Song: Identifiable {
+struct Song: Identifiable, Hashable {
     let id: UUID
     let title: String
     let artist: String
@@ -10,6 +10,11 @@ struct Song: Identifiable {
     let vocalistFileName: String // Tambahan untuk file midi vocalist
     let lyricFileName: String
     let coverImageName: String?
+    let key: String? = nil
+    let bpm: Int? = nil
+
+    static func == (lhs: Song, rhs: Song) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 extension Song {

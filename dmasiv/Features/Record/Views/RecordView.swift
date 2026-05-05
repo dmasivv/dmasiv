@@ -11,18 +11,9 @@ struct RecordView: View {
 
     var body: some View {
         ZStack {
-            // ── Background: atas agak terang, tengah gelap, bawah kembali terang (soft) ──
-            LinearGradient(
-                stops: [
-                    Gradient.Stop(color: AppColors.backgroundTop, location: 0.0),
-                    Gradient.Stop(color: AppColors.backgroundMid, location: 0.25),
-                    Gradient.Stop(color: AppColors.backgroundMid, location: 0.45),
-                    Gradient.Stop(color: AppColors.backgroundBottom, location: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // ── Background solid sesuai SongListView ──
+            Color(red: 0.04, green: 0.06, blue: 0.14)
+                .ignoresSafeArea()
 
             // Hidden Navigation ke Page 3
             NavigationLink(destination: Text("Halaman Result"), isActive: $navigateToResult) {
