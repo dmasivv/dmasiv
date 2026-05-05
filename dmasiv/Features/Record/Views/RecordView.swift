@@ -33,6 +33,10 @@ struct RecordView: View {
                 // ── Header: Album Art + Judul + Artis ─────────────────────
                 RecordHeaderViewV2(song: song)
 
+                // ── Breath Timeline (menunjukkan kapan harus napas) ───────
+                BreathTimelineView(viewModel: viewModel)
+                    .padding(.horizontal, 20)
+
                 // ── Lyric Card (desain baru) ───────────────────────────────
                 LyricCardViewV2(viewModel: viewModel)
 
@@ -64,6 +68,10 @@ struct RecordView: View {
             ─────────────────────────────────────────────────────────────── */
         }
         .navigationBarTitleDisplayMode(.inline)
+        // Menyembunyikan background bawaan navigation bar agar gradient bisa tembus ke atas
+        .toolbarBackground(.hidden, for: .navigationBar)
+        // Jika tidak ingin ada tulisan 'Back' yang mengganggu, bisa gunakan custom back atau hide toolbar
+        // .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             // Mencegah Preview (Canvas) minta izin Mic yang bisa bikin Crash
             if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
