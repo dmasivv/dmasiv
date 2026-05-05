@@ -1,18 +1,21 @@
 import Foundation
-import SwiftUI
 
-@MainActor
 class SongListViewModel: ObservableObject {
-    // The view will listen to this array
-    @Published var songs: [Song] = []
+    @Published var songs: [Song] = [] // Asumsi SongLibrary sudah ada
+    @Published var searchText: String = ""
     
     init() {
-        fetchSongs()
+        self.songs = SongLibrary
     }
     
-    // In the future, this could fetch from an API or CoreData.
-    // For now, it just loads your local library.
-    private func fetchSongs() {
-        self.songs = SongLibrary
+    // Logika Filter: Hanya lagu yang diawali dengan huruf yang diketik
+    var filteredSongs: [Song] {
+        if searchText.isEmpty {
+            return songs
+        } else {
+            return songs.filter { song in
+                song.title.lowercased().hasPrefix(searchText.lowercased())
+            }
+        }
     }
 }
