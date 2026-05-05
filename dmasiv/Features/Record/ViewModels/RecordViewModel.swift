@@ -29,6 +29,7 @@ class RecordViewModel: ObservableObject {
     @Published var activeLyric: LyricLine?
     @Published var allNotes: [MIDINote] = []
     @Published var allLyrics: [LyricLine] = []
+    @Published var breathMarkers: [LyricLine] = []
 
     /// Progress karaoke lirik (0.0 – 1.0) untuk sweep warna
     var lyricProgress: CGFloat {
@@ -60,7 +61,13 @@ class RecordViewModel: ObservableObject {
 
         // JEDA 0.1 DETIK: Membiarkan SwiftUI menggambar UI sebelum me-load file berat
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.lyricsData = LyricParser.parse(fileName: song.lyricFileName)
+            let parsedLyrics = LyricParser.parse(fileName: song.lyricFileName)
+            
+            // Simpan penanda napas terpisah untuk timeline
+            self.breathMarkers = parsedLyrics.filter { $0.isBreathe }
+            
+            // Lirik murni tanpa BREATHE
+            self.lyricsData = parsedLyrics.filter { !$0.isBreathe }
 
             // Asumsi file MIDI bernama sesuai lagu + "-midi"
             self.allNotes = MIDIParser.parse(fileName: song.vocalistFileName)
@@ -136,6 +143,22 @@ class RecordViewModel: ObservableObject {
         currentPitch = "--"
         audioLevels = Array(repeating: 0.0, count: 50)
         activeLyric = nil
+    }
+
+    /// Melompat ke waktu tertentu (seek) saat user menggeser slider
+    func seek(to time: TimeInterval) {
+        guard let player = audioPlayer, let duration = songDuration else { return }
+        let clampedTime = max(0, min(time, duration))
+        
+        player.currentTime = clampedTime
+        currentTime = clampedTime
+        
+        // Sinkronisasi lirik agar langsung melompat
+        if let currentL = lyricsData.first(where: { clampedTime >= $0.startTime && clampedTime <= $0.endTime }) {
+            activeLyric = currentL
+        } else {
+            activeLyric = nil
+        }
     }
 
     func startRecording() {

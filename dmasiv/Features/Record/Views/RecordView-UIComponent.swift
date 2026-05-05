@@ -575,44 +575,43 @@ struct RecordHeaderViewV2: View {
 struct LyricCardViewV2: View {
     @ObservedObject var viewModel: RecordViewModel
 
-    private let maxVisibleLines = 8   // 3 past + 1 current + 4 upcoming
-    private let pastLineCount   = 3   // jumlah baris yang sudah lewat
-
-    private var visibleLyrics: [(index: Int, lyric: LyricLine)] {
-        guard let currentIdx = viewModel.currentLyricIndex else {
-            let end = min(maxVisibleLines, viewModel.allLyrics.count)
-            guard end > 0 else { return [] }
-            return (0..<end).map { (index: $0, lyric: viewModel.allLyrics[$0]) }
-        }
-        // 3 baris lalu + current + 4 upcoming
-        let start = max(0, currentIdx - pastLineCount)
-        let end   = min(start + maxVisibleLines, viewModel.allLyrics.count)
-        return (start..<end).map { (index: $0, lyric: viewModel.allLyrics[$0]) }
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(visibleLyrics.enumerated()), id: \.element.lyric.id) { _, item in
-                let isCurrent = item.index == viewModel.currentLyricIndex
-                let progress  = progressFor(index: item.index)
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    // Ruang kosong atas agar lirik pertama bisa ke tengah
+                    Color.clear.frame(height: 60)
+                    
+                    ForEach(Array(viewModel.allLyrics.enumerated()), id: \.element.id) { index, lyric in
+                        let isCurrent = index == viewModel.currentLyricIndex
+                        let progress  = progressFor(index: index)
 
-                LyricRowWithBarView(lyric: item.lyric, isCurrent: isCurrent, progress: progress)
+                        LyricRowWithBarView(lyric: lyric, isCurrent: isCurrent, progress: progress)
+                            .id(index) // ID untuk target scroll
+                    }
+                    
+                    // Ruang kosong bawah
+                    Color.clear.frame(height: 100)
+                }
+                .padding(.horizontal, 20)
             }
-
-            // Slot kosong agar card tidak mengecil saat baris sedikit (height konsisten)
-            if visibleLyrics.count < maxVisibleLines {
-                ForEach(0..<(maxVisibleLines - visibleLyrics.count), id: \.self) { _ in
-                    Color.clear.frame(height: 66)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .liquidGlassBox(cornerRadius: 22)
+            .onChange(of: viewModel.currentLyricIndex) { newIndex in
+                if let idx = newIndex {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        proxy.scrollTo(idx, anchor: .center)
+                    }
+                }
+            }
+            .onAppear {
+                if let idx = viewModel.currentLyricIndex {
+                    proxy.scrollTo(idx, anchor: .center)
                 }
             }
         }
-        .padding(.vertical, 24)
-        .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlassBox(cornerRadius: 22)
-        .padding(.horizontal, 35)  // HIG: consistent 30pt edge inset
+        .padding(.horizontal, 35)  // HIG: consistent edge inset
         .padding(.top, 12)
-        .animation(.easeInOut(duration: 0.35), value: viewModel.currentLyricIndex)
     }
 
     private func progressFor(index: Int) -> CGFloat {
@@ -649,6 +648,37 @@ struct LyricRowWithBarView: View {
                     }
                 }
             } else {
+                // ── Baris lirik normal (Sweep Effect) ──────────────────
+                ZStack(alignment: .leading) {
+                    // Teks dasar (abu-abu/redup)
+                    Text(lyric.text)
+                        .font(.system(
+                            size: isCurrent ? 30 : 26,
+                            weight: isCurrent ? .bold : .regular,
+                            design: .rounded
+                        ))
+                        .foregroundColor(.white.opacity(0.40))
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.85)
+                    
+                    // Teks aktif (putih terang) yang menyapu dari kiri ke kanan
+                    Text(lyric.text)
+                        .font(.system(
+                            size: isCurrent ? 30 : 26,
+                            weight: isCurrent ? .bold : .regular,
+                            design: .rounded
+                        ))
+                        .foregroundColor(.white)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.85)
+                        .mask(
+                            GeometryReader { geo in
+                                Rectangle()
+                                    // Menyapu sesuai progress hanya jika baris ini sedang dinyanyikan
+                                    .frame(width: max(0, geo.size.width * (isCurrent ? progress : 0.0)))
+                            }
+                        )
+                }
                 // ── Baris lirik normal (TANPA bar) ──────────────────
                 Text(lyric.text)
                     .font(.system(
@@ -725,15 +755,21 @@ struct BreathBarIndicatorView: View {
 /// Slider progress lagu dengan timestamp kiri (elapsed) dan kanan (total).
 struct PlaybackProgressView: View {
     @ObservedObject var viewModel: RecordViewModel
+    
+    // State lokal saat user menahan/menggeser slider
+    @State private var dragProgress: CGFloat? = nil
 
     private var progress: CGFloat {
+        if let dp = dragProgress { return dp }
         guard let duration = viewModel.songDuration, duration > 0 else { return 0 }
         return CGFloat(viewModel.currentTime / duration)
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(formatTime(viewModel.currentTime))
+            // Tampilkan waktu sementara jika sedang digeser, atau waktu asli lagu jika tidak
+            let displayedTime = dragProgress != nil ? (Double(dragProgress!) * (viewModel.songDuration ?? 0)) : viewModel.currentTime
+            Text(formatTime(displayedTime))
                 .font(.system(size: 11, design: .monospaced))
                 .foregroundColor(AppColors.labelDim)
                 .frame(width: 36, alignment: .trailing)
@@ -762,8 +798,27 @@ struct PlaybackProgressView: View {
                         .fill(AppColors.lyricActive)
                         .frame(width: 14, height: 14)
                         .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
+                        // Perbesar sedikit thumb saat sedang di-drag
+                        .scaleEffect(dragProgress != nil ? 1.3 : 1.0)
                         .offset(x: (geo.size.width * progress) - 7)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: dragProgress != nil)
                 }
+                .contentShape(Rectangle()) // Buat seluruh area track bisa disentuh
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            // Batasi progress antara 0.0 - 1.0
+                            let newProgress = max(0, min(1, value.location.x / geo.size.width))
+                            dragProgress = newProgress
+                        }
+                        .onEnded { value in
+                            let newProgress = max(0, min(1, value.location.x / geo.size.width))
+                            if let duration = viewModel.songDuration {
+                                viewModel.seek(to: TimeInterval(newProgress) * duration)
+                            }
+                            dragProgress = nil
+                        }
+                )
             }
             .frame(height: 14)
 
@@ -911,6 +966,120 @@ struct RecordControlsViewV2: View {
 //            .cornerRadius(25)
 //            .font(.headline)
 //        }
+    }
+}
+
+// ============================================================
+// MARK: - V2 Breath Timeline
+// ============================================================
+
+/// Timeline berjalan yang menunjukkan kapan harus bernapas.
+/// Lingkaran kecil = curi napas, kapsul panjang = napas panjang.
+struct BreathTimelineView: View {
+    @ObservedObject var viewModel: RecordViewModel
+    
+    var body: some View {
+        GeometryReader { geo in
+            let playheadX: CGFloat = 35 // Posisi garis playhead di kiri
+            let visibleDuration: TimeInterval = 4.0 // Berapa detik ke depan yang terlihat
+            let pixelsPerSecond = (geo.size.width - playheadX) / CGFloat(visibleDuration)
+            let trackHeight = geo.size.height
+            
+            // Cek apakah saat ini playhead sedang mengenai marker napas
+            let isInhaling = viewModel.breathMarkers.contains { marker in
+                viewModel.currentTime >= marker.startTime && viewModel.currentTime <= marker.endTime
+            }
+            
+            ZStack(alignment: .leading) {
+                // Background Track (Kaca gelap)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.black.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                    )
+                
+                // 3 Garis Horizontal (Track lanes)
+                VStack(spacing: 0) {
+                    Spacer()
+                    Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
+                    Spacer()
+                    Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
+                    Spacer()
+                    Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
+                    Spacer()
+                }
+                
+                // Exhale Markers (Lirik yang dinyanyikan - Warna Biru Solid)
+                ForEach(viewModel.allLyrics) { marker in
+                    let timeDiff = marker.startTime - viewModel.currentTime
+                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
+                    let duration = marker.endTime - marker.startTime
+                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
+                    
+                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
+                        Capsule()
+                            .fill(Color(red: 0.22, green: 0.41, blue: 0.85)) // Biru solid
+                            .frame(width: width, height: 18)
+                            .position(x: xPos + (width / 2), y: trackHeight / 2)
+                    }
+                }
+                
+                // Inhale Markers (Ambil Napas - Warna Liquid Glass)
+                ForEach(viewModel.breathMarkers) { marker in
+                    let timeDiff = marker.startTime - viewModel.currentTime
+                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
+                    let duration = marker.endTime - marker.startTime
+                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
+                    
+                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
+                        // Desain efek Liquid Glass pada Capsule
+                        Capsule()
+                            .fill(Color.white.opacity(0.1))
+                            .background(Capsule().fill(.ultraThinMaterial))
+                            .overlay(Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1))
+                            .frame(width: width, height: 18)
+                            .position(x: xPos + (width / 2), y: trackHeight / 2)
+                    }
+                }
+                
+                // Garis Vertikal Playhead
+                Rectangle()
+                    .fill(Color.white.opacity(0.4))
+                    .frame(width: 1, height: trackHeight)
+                    .position(x: playheadX, y: trackHeight / 2)
+                
+                // Lingkaran Playhead / Tulisan INHALE
+                ZStack {
+                    if isInhaling {
+                        Text("INHALE")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .foregroundColor(Color(red: 0.22, green: 0.41, blue: 0.85)) // Warna biru yang sama
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(Color.white)
+                            .clipShape(Capsule())
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .transition(.scale.combined(with: .opacity))
+                    } else {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 3)
+                                .frame(width: 24, height: 24)
+                            Circle()
+                                .fill(Color.white.opacity(0.7))
+                                .frame(width: 16, height: 16)
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                // Geser menyesuaikan lebar tulisan agar tidak memotong batas kiri
+                .position(x: isInhaling ? playheadX + 24 : playheadX, y: trackHeight / 2)
+                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isInhaling)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .frame(height: 46)
     }
 }
 
