@@ -44,18 +44,6 @@ struct RecordView: View {
                 RecordControlsViewV2(viewModel: viewModel, navigateToResult: $navigateToResult)
             }
 
-            /* ── Komponen lama (di-disable, TIDAK dihapus) ─────────────────
-            VStack(spacing: 20) {
-                SongTitleAndArtist(title: song.title, artist: song.artist)
-                TimelineAreaView(viewModel: viewModel)
-                    .padding(.horizontal)
-                RefinedLyricAndBreathingNotation(viewModel: viewModel)
-                    .padding(.horizontal)
-                WaveformVisualizerView(viewModel: viewModel)
-                    .padding(.horizontal)
-                RecordControlsView(viewModel: viewModel, navigateToResult: $navigateToResult)
-            }
-            ─────────────────────────────────────────────────────────────── */
         }
         .navigationBarTitleDisplayMode(.inline)
         // Menyembunyikan background bawaan navigation bar agar gradient bisa tembus ke atas
