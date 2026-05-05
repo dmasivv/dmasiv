@@ -856,65 +856,43 @@ struct RecordControlsViewV2: View {
 
     var body: some View {
         ZStack {
-            // ── Mic / Pause (centered horizontal) ────────────────────────
+            // ── Main Button (Record / Pause) ────────────────────────
             Button(action: {
                 viewModel.togglePlayAndRecord()
             }) {
                 ZStack {
-                    // Background gradasi dalam tombol
+                    // Background bulat putih solid dengan sedikit shadow
                     Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [AppColors.buttonBlueTop,   // Biru gelap
-                                         AppColors.buttonBlueBottom], // Biru sangat gelap pekat
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 90, height: 90)
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 3)
 
-                    // Outer ring tebal solid putih
-                    Circle()
-                        .stroke(AppColors.lyricActive, lineWidth: 4.5)
-                        .frame(width: 90, height: 90)
-
-                    // Icon putih tebal tanpa fill background
-                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic.fill")
-                        .font(.system(size: 44, weight: .bold))
-                        .foregroundColor(AppColors.lyricActive)
+                    // Icon dark navy (record.circle / pause.fill)
+                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "record.circle")
+                        .font(.system(size: 38, weight: .semibold))
+                        .foregroundColor(Color(red: 0.04, green: 0.06, blue: 0.14))
                 }
             }
 
-            // ── Replay (kiri dari mic) ────────────────────────────────────
+            // ── Replay / Back Button ────────────────────────────────────
             HStack {
                 Button(action: {
                     viewModel.replayRecording()
                 }) {
                     ZStack {
-                        // Background gradasi dalam tombol
+                        // Background bulat putih solid
                         Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppColors.buttonBlueTop,   // Biru gelap
-                                             AppColors.buttonBlueBottom], // Biru sangat gelap pekat
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 52, height: 52)
+                            .fill(Color.white)
+                            .frame(width: 48, height: 48)
+                            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 3)
 
-                        // Border tipis solid putih
-                        Circle()
-                            .stroke(AppColors.lyricActive, lineWidth: 1.2)
-                            .frame(width: 52, height: 52)
-
-                        // Icon arrow tebal solid putih
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(AppColors.lyricActive)
+                        // Icon arrowtriangle.backward dark navy
+                        Image(systemName: "arrowtriangle.backward")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(red: 0.04, green: 0.06, blue: 0.14))
                     }
                 }
-                .padding(.leading, 75)
+                .padding(.leading, 90) // <-- Ditambah agar geser ke kanan mendekati tombol tengah
 
                 Spacer()
             }
@@ -989,23 +967,8 @@ struct BreathTimelineView: View {
                     Spacer()
                 }
                 
-                // Exhale Markers (Lirik yang dinyanyikan - Warna Biru Solid)
+                // Exhale Markers (Lirik yang dinyanyikan - Warna Liquid Glass)
                 ForEach(viewModel.allLyrics.filter { !$0.isBreathe }) { marker in
-                    let timeDiff = marker.startTime - adjustedTime
-                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
-                    let duration = marker.endTime - marker.startTime
-                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
-                    
-                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
-                        Capsule()
-                            .fill(Color(red: 0.22, green: 0.41, blue: 0.85)) // Biru solid
-                            .frame(width: width, height: 18)
-                            .position(x: xPos + (width / 2), y: trackHeight / 2)
-                    }
-                }
-                
-                // Inhale Markers (Ambil Napas - Warna Liquid Glass)
-                ForEach(viewModel.breathMarkers) { marker in
                     let timeDiff = marker.startTime - adjustedTime
                     let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
                     let duration = marker.endTime - marker.startTime
@@ -1017,6 +980,22 @@ struct BreathTimelineView: View {
                             .fill(Color.white.opacity(0.1))
                             .background(Capsule().fill(.ultraThinMaterial))
                             .overlay(Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1))
+                            .frame(width: width, height: 18)
+                            .position(x: xPos + (width / 2), y: trackHeight / 2)
+                    }
+                }
+                
+                // Inhale Markers (Ambil Napas - Warna Biru Solid)
+                ForEach(viewModel.breathMarkers) { marker in
+                    let timeDiff = marker.startTime - adjustedTime
+                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
+                    let duration = marker.endTime - marker.startTime
+                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
+                    
+                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
+                        Capsule()
+                            .fill(Color(red: 0.22, green: 0.41, blue: 0.85).opacity(0.5)) // Biru 
+                            .background(Capsule().fill(.ultraThinMaterial))
                             .frame(width: width, height: 18)
                             .position(x: xPos + (width / 2), y: trackHeight / 2)
                     }
