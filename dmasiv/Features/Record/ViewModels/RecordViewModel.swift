@@ -43,9 +43,6 @@ class RecordViewModel: ObservableObject {
         allLyrics.lastIndex { currentTime >= $0.startTime }
     }
 
-    /// Daftar lagu yang tersedia — bersumber dari SongLibrary.swift
-    //    let songs: [Song] = SongLibrary.all
-
     private var lyricsData: [LyricLine] = [] { didSet { allLyrics = lyricsData } }
     private let pitchTracker = TrackUserPitch()
     private let voiceRecorder = RecordAudio()
