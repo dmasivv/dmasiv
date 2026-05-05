@@ -66,7 +66,7 @@ class RecordViewModel: ObservableObject {
             // Simpan penanda napas terpisah untuk timeline
             self.breathMarkers = parsedLyrics.filter { $0.isBreathe }
             
-            // Lirik murni tanpa BREATHE
+            // Lirik murni tanpa BREATHE (hanya tampil di lyric card)
             self.lyricsData = parsedLyrics.filter { !$0.isBreathe }
 
             // Asumsi file MIDI bernama sesuai lagu + "-midi"

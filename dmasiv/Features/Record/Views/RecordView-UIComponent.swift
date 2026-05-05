@@ -648,38 +648,7 @@ struct LyricRowWithBarView: View {
                     }
                 }
             } else {
-                // ── Baris lirik normal (Sweep Effect) ──────────────────
-                ZStack(alignment: .leading) {
-                    // Teks dasar (abu-abu/redup)
-                    Text(lyric.text)
-                        .font(.system(
-                            size: isCurrent ? 30 : 26,
-                            weight: isCurrent ? .bold : .regular,
-                            design: .rounded
-                        ))
-                        .foregroundColor(.white.opacity(0.40))
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.85)
-                    
-                    // Teks aktif (putih terang) yang menyapu dari kiri ke kanan
-                    Text(lyric.text)
-                        .font(.system(
-                            size: isCurrent ? 30 : 26,
-                            weight: isCurrent ? .bold : .regular,
-                            design: .rounded
-                        ))
-                        .foregroundColor(.white)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.85)
-                        .mask(
-                            GeometryReader { geo in
-                                Rectangle()
-                                    // Menyapu sesuai progress hanya jika baris ini sedang dinyanyikan
-                                    .frame(width: max(0, geo.size.width * (isCurrent ? progress : 0.0)))
-                            }
-                        )
-                }
-                // ── Baris lirik normal (TANPA bar) ──────────────────
+                // ── Baris lirik normal (Menyala Utuh / Blok) ──────────────────
                 Text(lyric.text)
                     .font(.system(
                         size: isCurrent ? 30 : 26,
@@ -985,9 +954,19 @@ struct BreathTimelineView: View {
             let pixelsPerSecond = (geo.size.width - playheadX) / CGFloat(visibleDuration)
             let trackHeight = geo.size.height
             
+            // Offset untuk kompensasi delay animasi perpindahan lirik
+            // Lirik menggunakan .easeInOut(duration: 0.35), jadi kita geser
+            // timeline agar marker-nya tiba di playhead bersamaan dengan
+            // saat lirik selesai bertransisi di layar.
+            let transitionOffset: TimeInterval = 0.35
+            
+            // currentTime yang sudah dikompensasi
+            let adjustedTime = viewModel.currentTime - transitionOffset
+            
             // Cek apakah saat ini playhead sedang mengenai marker napas
+            // (menggunakan waktu yang sudah dikompensasi)
             let isInhaling = viewModel.breathMarkers.contains { marker in
-                viewModel.currentTime >= marker.startTime && viewModel.currentTime <= marker.endTime
+                adjustedTime >= marker.startTime && adjustedTime <= marker.endTime
             }
             
             ZStack(alignment: .leading) {
@@ -1011,8 +990,8 @@ struct BreathTimelineView: View {
                 }
                 
                 // Exhale Markers (Lirik yang dinyanyikan - Warna Biru Solid)
-                ForEach(viewModel.allLyrics) { marker in
-                    let timeDiff = marker.startTime - viewModel.currentTime
+                ForEach(viewModel.allLyrics.filter { !$0.isBreathe }) { marker in
+                    let timeDiff = marker.startTime - adjustedTime
                     let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
                     let duration = marker.endTime - marker.startTime
                     let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
@@ -1027,7 +1006,7 @@ struct BreathTimelineView: View {
                 
                 // Inhale Markers (Ambil Napas - Warna Liquid Glass)
                 ForEach(viewModel.breathMarkers) { marker in
-                    let timeDiff = marker.startTime - viewModel.currentTime
+                    let timeDiff = marker.startTime - adjustedTime
                     let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
                     let duration = marker.endTime - marker.startTime
                     let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
@@ -1054,7 +1033,7 @@ struct BreathTimelineView: View {
                     if isInhaling {
                         Text("INHALE")
                             .font(.system(size: 16, weight: .black, design: .rounded))
-                            .foregroundColor(Color(red: 0.22, green: 0.41, blue: 0.85)) // Warna biru yang sama
+                            .foregroundColor(Color(red: 0.22, green: 0.41, blue: 0.85))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 6)
                             .background(Color.white)
