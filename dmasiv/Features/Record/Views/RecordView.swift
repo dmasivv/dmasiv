@@ -14,10 +14,10 @@ struct RecordView: View {
             // ── Background: atas agak terang, tengah gelap, bawah kembali terang (soft) ──
             LinearGradient(
                 stops: [
-                    Gradient.Stop(color: Color(red: 0.16, green: 0.25, blue: 0.50), location: 0.0),
-                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.25),
-                    Gradient.Stop(color: Color(red: 0.10, green: 0.15, blue: 0.35), location: 0.45),
-                    Gradient.Stop(color: Color(red: 0.15, green: 0.23, blue: 0.48), location: 1.0)
+                    Gradient.Stop(color: AppColors.backgroundTop, location: 0.0),
+                    Gradient.Stop(color: AppColors.backgroundMid, location: 0.25),
+                    Gradient.Stop(color: AppColors.backgroundMid, location: 0.45),
+                    Gradient.Stop(color: AppColors.backgroundBottom, location: 1.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -39,8 +39,7 @@ struct RecordView: View {
 
                 // ── Lyric Card (desain baru) ───────────────────────────────
                 LyricCardViewV2(viewModel: viewModel)
-
-                Spacer()
+                    .padding(.bottom, 10)
 
                 // ── Playback Progress Slider ───────────────────────────────
                 PlaybackProgressView(viewModel: viewModel)

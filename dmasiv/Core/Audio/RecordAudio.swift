@@ -2,12 +2,6 @@ import Foundation
 import AVFoundation
 
 /// Service for recording the user's voice to a local .m4a file.
-///
-/// Usage:
-/// 1. Call `startRecording(songTitle:)` when the karaoke session begins.
-/// 2. Call `stopRecording()` when the user presses "Selesai".
-/// 3. The file is saved to the app's Documents directory and can be played back
-///    via `getRecordings()` + AVAudioPlayer.
 class RecordAudio: NSObject, AVAudioRecorderDelegate {
     
     private var audioRecorder: AVAudioRecorder?
@@ -21,24 +15,29 @@ class RecordAudio: NSObject, AVAudioRecorderDelegate {
     }
     
     // MARK: - Recording
-    
-    /// Starts recording microphone input to a timestamped .m4a file.
-    /// - Parameter songTitle: Used as a prefix in the filename for easy identification.
-    /// - Throws: If the audio session or recorder setup fails.
+    /// Starts recording microphone input to a uniquely named .m4a file.
+    /// Format: "SongTitle [Attempt X].m4a"
     func startRecording(songTitle: String = "Recording") throws {
         // 1. Configure audio session for recording + playback
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
         try session.setActive(true)
         
-        // 2. Build a unique filename: "Januari_2026-05-02_13-22-35.m4a"
-        let sanitizedTitle = songTitle.replacingOccurrences(of: " ", with: "_")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let timestamp = dateFormatter.string(from: Date())
-        let fileName = "\(sanitizedTitle)_\(timestamp).m4a"
+        // 2. Build filename logic: "Title [Attempt 1].m4a"
+        let directory = RecordAudio.recordingsDirectory()
+        var attempt = 1
         
-        let fileURL = RecordAudio.recordingsDirectory().appendingPathComponent(fileName)
+        // Buat nama file awal
+        var fileName = "\(songTitle) [\(attempt)].m4a"
+        var fileURL = directory.appendingPathComponent(fileName)
+        
+        // LOOPING: Cek terus menerus apakah file sudah ada.
+        // Jika sudah ada, tambah attempt +1.
+        while FileManager.default.fileExists(atPath: fileURL.path) {
+            attempt += 1
+            fileName = "\(songTitle) [\(attempt)].m4a"
+            fileURL = directory.appendingPathComponent(fileName)
+        }
         
         // 3. High-quality AAC recording settings
         let settings: [String: Any] = [
@@ -54,11 +53,10 @@ class RecordAudio: NSObject, AVAudioRecorderDelegate {
         audioRecorder?.record()
         
         lastRecordingURL = fileURL
-        print("🎙️ Recording started: \(fileURL.lastPathComponent)")
+        print("Recording started: \(fileURL.lastPathComponent)")
     }
     
     /// Stops the active recording and finalizes the file.
-    /// - Returns: The URL of the saved recording, or nil if nothing was recording.
     @discardableResult
     func stopRecording() -> URL? {
         guard let recorder = audioRecorder, recorder.isRecording else {
@@ -66,19 +64,17 @@ class RecordAudio: NSObject, AVAudioRecorderDelegate {
         }
         
         recorder.stop()
-        print("🎙️ Recording saved: \(lastRecordingURL?.lastPathComponent ?? "unknown")")
+        print("Recording saved: \(lastRecordingURL?.lastPathComponent ?? "unknown")")
         return lastRecordingURL
     }
     
     // MARK: - File Management
     
     /// Returns the directory where all recordings are saved.
-    /// Creates the directory if it doesn't exist.
     static func recordingsDirectory() -> URL {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let recordingsPath = documentsPath.appendingPathComponent("Recordings")
         
-        // Create directory if needed
         if !FileManager.default.fileExists(atPath: recordingsPath.path) {
             try? FileManager.default.createDirectory(at: recordingsPath, withIntermediateDirectories: true)
         }
@@ -121,7 +117,6 @@ class RecordAudio: NSObject, AVAudioRecorderDelegate {
     }
     
     // MARK: - AVAudioRecorderDelegate
-    
     func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         if !flag {
             print("⚠️ Recording did not finish successfully")
@@ -130,8 +125,6 @@ class RecordAudio: NSObject, AVAudioRecorderDelegate {
 }
 
 // MARK: - Recording Data Model
-
-/// Represents a saved recording file with metadata.
 struct RecordingItem: Identifiable {
     let id = UUID()
     let url: URL
@@ -139,12 +132,10 @@ struct RecordingItem: Identifiable {
     let createdAt: Date
     let fileSize: Int64
     
-    /// Human-readable file size (e.g. "1.2 MB")
     var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file)
     }
     
-    /// Human-readable date (e.g. "2 May 2026, 13:22")
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium

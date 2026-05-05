@@ -27,20 +27,20 @@ struct SongTitleAndArtist: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.lyricActive)
                 Text(artist)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(AppColors.lyricActive.opacity(0.6))
             }
             
             Spacer()
             
-            NavigationLink(destination: RecordingsListView()) {
+            NavigationLink(destination: HistoryView()) {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.lyricActive)
                     .padding(10)
-                    .background(Color.white.opacity(0.15))
+                    .background(AppColors.overlayMedium)
                     .clipShape(Circle())
             }
         }
@@ -65,19 +65,19 @@ struct RecordControlsView: View {
             if viewModel.showSavedConfirmation, let url = viewModel.savedRecordingURL {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(AppColors.stateSuccess)
                     Text("Rekaman disimpan!")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.lyricActive)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white.opacity(0.1))
+                        .fill(AppColors.overlayLight)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                                .stroke(AppColors.stateSuccessSoft, lineWidth: 1)
                         )
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -90,7 +90,7 @@ struct RecordControlsView: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(viewModel.isPlaying ? Color.white : Color.white)
+                            .fill(AppColors.lyricActive)
                             .frame(width: 72, height: 72)
                         
                         Image(systemName: viewModel.isPlaying ? "stop.fill" : "mic.fill")
@@ -107,8 +107,8 @@ struct RecordControlsView: View {
                     }
                     .padding(.horizontal, 30)
                     .padding(.vertical, 15)
-                    .background(Color.green)
-                    .foregroundColor(.white)
+                    .background(AppColors.stateSuccess)
+                    .foregroundColor(AppColors.lyricActive)
                     .cornerRadius(25)
                     .font(.headline)
                 }
@@ -141,7 +141,7 @@ struct TimelineAreaView: View {
             ZStack(alignment: .topLeading) {
                 // -- Background --
                 RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.white.opacity(0.05))
+                    .fill(AppColors.overlaySubtle)
                 
                 // -- Horizontal grid lines (C3–C6) --
                 VStack {
@@ -164,7 +164,7 @@ struct TimelineAreaView: View {
                             && viewModel.currentTime <= (note.start + note.duration)
                         
                         Capsule()
-                            .fill(isActive ? Color.blue.opacity(0.8) : Color.gray.opacity(0.4))
+                            .fill(isActive ? AppColors.noteActive : AppColors.noteInactive)
                             .frame(width: max(noteWidth, 10), height: 14)
                             .position(
                                 x: startX + (noteWidth / 2),
@@ -180,7 +180,7 @@ struct TimelineAreaView: View {
                     
                     if pointX > 0 {
                         Circle()
-                            .fill(Color.yellow.opacity(0.8))
+                            .fill(AppColors.pitchHistory)
                             .frame(width: 6, height: 6)
                             .position(x: pointX, y: calculateY(for: point.midiNote, in: height))
                     }
@@ -188,17 +188,17 @@ struct TimelineAreaView: View {
                 
                 // -- Red playhead line --
                 Rectangle()
-                    .fill(Color.red.opacity(0.8))
+                    .fill(AppColors.stateDanger)
                     .frame(width: 2, height: height)
                     .position(x: playheadX, y: height / 2)
                 
                 // -- Live pitch indicator (green dot) --
                 if viewModel.currentMidiNote > 0 {
                     Circle()
-                        .fill(Color.green)
+                        .fill(AppColors.stateSuccess)
                         .frame(width: 20, height: 20)
                         .position(x: playheadX, y: calculateY(for: viewModel.currentMidiNote, in: height))
-                        .shadow(color: .green.opacity(0.8), radius: 8)
+                        .shadow(color: AppColors.stateSuccess.opacity(0.8), radius: 8)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 15))
@@ -228,9 +228,9 @@ struct GridLineView: View {
         HStack(spacing: 5) {
             Text(label)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundColor(.white.opacity(0.3))
+                .foregroundColor(AppColors.lyricActive.opacity(0.3))
             Rectangle()
-                .fill(Color.white.opacity(0.1))
+                .fill(AppColors.overlayLight)
                 .frame(height: 1)
         }
     }
@@ -253,7 +253,7 @@ struct RecordPitchIndicatorView: View {
             
             Text(pitch)
                 .font(.system(size: 40, weight: .black, design: .rounded))
-                .foregroundColor(midiNote > 0 ? .green : .gray)
+                .foregroundColor(midiNote > 0 ? AppColors.stateSuccess : AppColors.pitchNone)
         }
     }
 }
@@ -279,7 +279,7 @@ struct WaveformVisualizerView: View {
                 let barHeight: CGFloat = isSilent ? 1.0 : max(1.5, level * 80.0)
                 
                 RoundedRectangle(cornerRadius: 2.0)
-                    .fill(viewModel.isRecording ? Color.white : Color.gray.opacity(0.3))
+                    .fill(viewModel.isRecording ? AppColors.lyricActive : AppColors.pitchNone.opacity(0.3))
                     .frame(width: 2.0, height: barHeight)
                     .animation(.spring(response: 0.15, dampingFraction: 0.7), value: barHeight)
             }
@@ -303,12 +303,12 @@ struct KaraokeLyricView: View {
             // Dim base text (unsung portion)
             Text(text)
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundColor(.white.opacity(0.3))
-            
+                .foregroundColor(AppColors.lyricActive.opacity(0.3))
+
             // Highlighted overlay (sung portion), masked by progress
             Text(text)
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundColor(.purple)
+                .foregroundColor(AppColors.lyricSweep)
                 .mask(
                     GeometryReader { geo in
                         HStack(spacing: 0) {
@@ -334,7 +334,7 @@ struct RecordLyricAreaView: View {
         } else {
             Text("🎵")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundColor(.white.opacity(0.1))
+                .foregroundColor(AppColors.overlayLight)
                 .padding(.vertical, 10)
         }
     }
@@ -355,21 +355,21 @@ struct BreathingTracingLineView: View {
             ZStack(alignment: .leading) {
                 // Background track
                 Capsule()
-                    .fill(Color.white.opacity(0.12))
+                    .fill(AppColors.lyricActive.opacity(0.12))
                     .frame(height: 5)
-                
+
                 // Animated fill (only when this interval is the current one)
                 if isActive {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.9), Color.white],
+                                colors: [AppColors.lyricActive.opacity(0.9), AppColors.lyricActive],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .frame(width: max(0, geometry.size.width * progress), height: 5)
-                        .shadow(color: .white.opacity(0.6), radius: 8, x: 0, y: 0)
+                        .shadow(color: AppColors.lyricActive.opacity(0.6), radius: 8, x: 0, y: 0)
                 }
             }
         }
@@ -481,7 +481,7 @@ struct RefinedLyricAndBreathingNotation: View {
         HStack(spacing: 6) {
             ForEach(0..<3) { _ in
                 Circle()
-                    .fill(Color.white.opacity(0.15))
+                    .fill(AppColors.overlayMedium)
                     .frame(width: 5, height: 5)
             }
         }
@@ -496,7 +496,7 @@ struct RefinedLyricAndBreathingNotation: View {
                 weight: .bold,
                 design: .rounded
             ))
-            .foregroundColor(isCurrent ? .white : .white.opacity(0.4))
+            .foregroundColor(isCurrent ? AppColors.lyricActive : AppColors.lyricInactive)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
     }
@@ -536,15 +536,15 @@ struct RecordHeaderViewV2: View {
                         RoundedRectangle(cornerRadius: 14)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(red: 0.3, green: 0.4, blue: 0.7),
-                                             Color(red: 0.2, green: 0.3, blue: 0.6)],
+                                    colors: [AppColors.albumArtTop,
+                                             AppColors.albumArtBottom],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                         Image(systemName: "music.note")
                             .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(AppColors.lyricActive.opacity(0.8))
                     }
                 }
             }
@@ -555,10 +555,10 @@ struct RecordHeaderViewV2: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(song.title)
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.lyricActive)
                 Text(song.artist)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(AppColors.lyricSubtitle)
             }
             Spacer()
         }
@@ -643,7 +643,7 @@ struct LyricRowWithBarView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<3, id: \.self) { _ in
                         Circle()
-                            .fill(Color.white.opacity(isCurrent ? 0.3 : 0.12))
+                            .fill(AppColors.lyricActive.opacity(isCurrent ? 0.3 : 0.12))
                             .frame(width: 5, height: 5)
                     }
                 }
@@ -679,6 +679,16 @@ struct LyricRowWithBarView: View {
                             }
                         )
                 }
+                // ── Baris lirik normal (TANPA bar) ──────────────────
+                Text(lyric.text)
+                    .font(.system(
+                        size: isCurrent ? 30 : 26,
+                        weight: isCurrent ? .bold : .regular,
+                        design: .rounded
+                    ))
+                    .foregroundColor(isCurrent ? AppColors.lyricActive : AppColors.lyricInactive)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.85)
                     .transition(
                         .asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -710,7 +720,7 @@ struct BreathBarIndicatorView: View {
         ZStack(alignment: .leading) {
             // Track background
             RoundedRectangle(cornerRadius: 3)
-                .fill(Color.white.opacity(0.10))
+                .fill(AppColors.overlayLight)
                 .frame(width: trackWidth, height: 5)
 
             // Fill biru ke putih sesuai referensi gambar
@@ -718,14 +728,14 @@ struct BreathBarIndicatorView: View {
                 .fill(
                     isCurrent
                     ? LinearGradient(
-                        colors: [Color(red: 0.22, green: 0.41, blue: 0.85), // Biru kuat di kiri
-                                 Color.white],                              // Memutih di kanan
+                        colors: [AppColors.accentBlue,                     // Biru kuat di kiri
+                                 AppColors.lyricActive],                    // Memutih di kanan
                         startPoint: .leading,
                         endPoint: .trailing
                       )
                     : LinearGradient(
-                        colors: [Color(red: 0.30, green: 0.50, blue: 0.85).opacity(0.55),
-                                 Color(red: 0.30, green: 0.50, blue: 0.85).opacity(0.55)],
+                        colors: [AppColors.accentBlueSoft.opacity(0.55),
+                                 AppColors.accentBlueSoft.opacity(0.55)],
                         startPoint: .leading,
                         endPoint: .trailing
                       )
@@ -761,21 +771,21 @@ struct PlaybackProgressView: View {
             let displayedTime = dragProgress != nil ? (Double(dragProgress!) * (viewModel.songDuration ?? 0)) : viewModel.currentTime
             Text(formatTime(displayedTime))
                 .font(.system(size: 11, design: .monospaced))
-                .foregroundColor(.white.opacity(0.45))
+                .foregroundColor(AppColors.labelDim)
                 .frame(width: 36, alignment: .trailing)
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
             // Track
             Capsule()
-                .fill(Color.white.opacity(0.18))
+                .fill(AppColors.overlayTrack)
                 .frame(height: 4) // Sedikit ditebalkan sesuai referensi
 
             // Filled portion (Gradien biru ke putih)
             Capsule()
                 .fill(
                     LinearGradient(
-                        colors: [Color(red: 0.22, green: 0.41, blue: 0.85), Color.white],
+                        colors: [AppColors.accentBlue, AppColors.lyricActive],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -785,7 +795,7 @@ struct PlaybackProgressView: View {
 
             // Thumb
             Circle()
-                        .fill(Color.white)
+                        .fill(AppColors.lyricActive)
                         .frame(width: 14, height: 14)
                         .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 2)
                         // Perbesar sedikit thumb saat sedang di-drag
@@ -814,7 +824,7 @@ struct PlaybackProgressView: View {
 
             Text(formatTime(viewModel.songDuration ?? 0))
                 .font(.system(size: 11, design: .monospaced))
-                .foregroundColor(.white.opacity(0.45))
+                .foregroundColor(AppColors.labelDim)
                 .frame(width: 36, alignment: .leading)
         }
         .padding(.horizontal, 20)  // HIG: consistent 20pt edge inset
@@ -840,20 +850,27 @@ struct WaveformVisualizerViewV2: View {
         HStack(spacing: 3.0) {
             ForEach(0..<viewModel.audioLevels.count, id: \.self) { index in
                 let level = viewModel.audioLevels[index]
-                let isSilent = level < 0.25
-                let barHeight: CGFloat = isSilent ? 3.0 : max(4.0, level * 56.0)
+                
+                // 1. Biarkan tinggi bar merespons level secara natural tanpa lompatan drastis.
+                // Jika ingin meredam "noise" kecil, kamu bisa mengurangi nilainya sedikit,
+                // tapi pastikan transisinya tetap mulus.
+                let smoothLevel = max(0, level - 0.05) // Sedikit noise gate (opsional)
+                let barHeight: CGFloat = max(2.0, smoothLevel * 100.0)
 
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(
                         viewModel.isRecording
-                        ? Color.white.opacity(0.85)
-                        : Color.white.opacity(0.18)
+                        ? AppColors.waveformActive
+                        : AppColors.waveformIdle
                     )
                     .frame(width: 3.0, height: barHeight)
-                    .animation(.spring(response: 0.12, dampingFraction: 0.65), value: barHeight)
+                    
+                    // 2. Gunakan easeOut dengan durasi yang mendekati interval timer di ViewModel kamu (biasanya 0.1 - 0.15 detik).
+                    // Ini akan membuat batang memanjang dan menyusut seperti bernapas, bukan memantul.
+                    .animation(.easeOut(duration: 0.15), value: barHeight)
             }
         }
-        .frame(height: 56.0)
+        .frame(height: 100.0)
     }
 }
 
@@ -879,8 +896,8 @@ struct RecordControlsViewV2: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Color(red: 0.18, green: 0.30, blue: 0.60),   // Biru gelap
-                                         Color(red: 0.10, green: 0.18, blue: 0.45)], // Biru sangat gelap pekat
+                                colors: [AppColors.buttonBlueTop,   // Biru gelap
+                                         AppColors.buttonBlueBottom], // Biru sangat gelap pekat
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -889,13 +906,13 @@ struct RecordControlsViewV2: View {
 
                     // Outer ring tebal solid putih
                     Circle()
-                        .stroke(Color.white, lineWidth: 4.5)
+                        .stroke(AppColors.lyricActive, lineWidth: 4.5)
                         .frame(width: 90, height: 90)
 
                     // Icon putih tebal tanpa fill background
                     Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic.fill")
                         .font(.system(size: 44, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.lyricActive)
                 }
             }
 
@@ -909,8 +926,8 @@ struct RecordControlsViewV2: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(red: 0.18, green: 0.30, blue: 0.60),   // Biru gelap
-                                             Color(red: 0.10, green: 0.18, blue: 0.45)], // Biru sangat gelap pekat
+                                    colors: [AppColors.buttonBlueTop,   // Biru gelap
+                                             AppColors.buttonBlueBottom], // Biru sangat gelap pekat
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -919,13 +936,13 @@ struct RecordControlsViewV2: View {
 
                         // Border tipis solid putih
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.2)
+                            .stroke(AppColors.lyricActive, lineWidth: 1.2)
                             .frame(width: 52, height: 52)
-                        
+
                         // Icon arrow tebal solid putih
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.lyricActive)
                     }
                 }
                 .padding(.leading, 75)
@@ -944,8 +961,8 @@ struct RecordControlsViewV2: View {
 //            }
 //            .padding(.horizontal, 30)
 //            .padding(.vertical, 15)
-//            .background(Color.green)
-//            .foregroundColor(.white)
+//            .background(AppColors.stateSuccess)
+//            .foregroundColor(AppColors.lyricActive)
 //            .cornerRadius(25)
 //            .font(.headline)
 //        }
@@ -1086,7 +1103,7 @@ struct LiquidGlassBoxModifier: ViewModifier {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(
                         LinearGradient(
-                            colors: [.white.opacity(0.5), .white.opacity(0.05), .white.opacity(0.2)],
+                            colors: [AppColors.lyricActive.opacity(0.5), AppColors.lyricActive.opacity(0.05), AppColors.lyricActive.opacity(0.2)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),

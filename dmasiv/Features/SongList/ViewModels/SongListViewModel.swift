@@ -3,10 +3,16 @@ import SwiftUI
 
 @MainActor
 class SongListViewModel: ObservableObject {
-    @Published private(set) var availableSongs: [Song] = []
+    // The view will listen to this array
+    @Published var songs: [Song] = []
     
-    // Method to load local songs from Resources
-    func loadLocalSongs() {
-        // To do: Load hardcoded songs or scan local bundle
+    init() {
+        fetchSongs()
+    }
+    
+    // In the future, this could fetch from an API or CoreData.
+    // For now, it just loads your local library.
+    private func fetchSongs() {
+        self.songs = SongLibrary
     }
 }
