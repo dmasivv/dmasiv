@@ -6,6 +6,8 @@ struct Song: Identifiable {
     let title: String
     let artist: String
     let duration: String // durasi lagu
+    let key: String // key lagu
+    let bpm: String // bpm lagu
     let audioFileName: String
     let vocalistFileName: String // Tambahan untuk file midi vocalist
     let lyricFileName: String
@@ -18,6 +20,8 @@ extension Song {
         title: "Januari",
         artist: "Glenn Fredly",
         duration: "3:47",
+        key: "D Major",
+        bpm: "122",
         audioFileName: "januari-bgm",
         vocalistFileName: "januari-midi",
         lyricFileName: "januari-lrc",
@@ -31,6 +35,8 @@ let SongLibrary : [Song] = [
         title: "Januari",
         artist: "Glenn Fredly",
         duration: "3:47",
+        key: "D Major",
+        bpm: "122",
         audioFileName: "januari-bgm",
         vocalistFileName: "januari-midi",
         lyricFileName: "januari-lrc",
@@ -41,6 +47,8 @@ let SongLibrary : [Song] = [
         title: "Apalah (Arti Menunggu)",
         artist: "Raisa",
         duration: "3:34",
+        key: "E Major",
+        bpm: "72",
         audioFileName: "apalah-bgm",
         vocalistFileName: "apalah-midi",
         lyricFileName: "apalah-lrc",
@@ -51,6 +59,8 @@ let SongLibrary : [Song] = [
         title: "Sempurna",
         artist: "Andra and The Backbone",
         duration: "4:25",
+        key: "E Major",
+        bpm: "115",
         audioFileName: "sempurna-bgm",
         vocalistFileName: "sempurna-midi",
         lyricFileName: "sempurna-lrc",
