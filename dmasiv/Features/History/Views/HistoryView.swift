@@ -12,19 +12,29 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // ── Judul "History" kustom — tanpa navigation bar bawaan ──
+                    Text("History")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
 
-                if viewModel.recordings.isEmpty {
-                    HistoryEmptyView()
-                } else {
-                    HistoryListView(recordings: viewModel.recordings) { recording in
-                        selectedRecording = recording
+                    if viewModel.recordings.isEmpty {
+                        HistoryEmptyView()
+                            .padding(.top, 40)
+                    } else {
+                        HistoryListView(recordings: viewModel.recordings) { recording in
+                            selectedRecording = recording
+                        }
                     }
                 }
             }
-            .navigationTitle("History")
+            .background(Color(red: 0.04, green: 0.06, blue: 0.14).ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar) // Sembunyikan nav bar bawaan
+            .preferredColorScheme(.dark)
             .onAppear { viewModel.fetchRecordings() }
 
             // Modal Lagu

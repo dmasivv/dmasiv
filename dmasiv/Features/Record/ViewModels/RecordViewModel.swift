@@ -2,6 +2,12 @@ import Foundation
 import AVFoundation
 import SwiftUI
 
+enum RecordState{
+    case stop
+    case play
+    case pause
+}
+
 @MainActor
 class RecordViewModel: ObservableObject {
     // BUKAN @Published (Aman dari EXC_BAD_ACCESS saat onAppear)

@@ -29,10 +29,10 @@ struct SongListView: View {
         tabBarAppearance.backgroundColor = UIColor(red: 0.06, green: 0.08, blue: 0.18, alpha: 1)
         
         // Memaksa item tersebar penuh dari kiri ke kanan
-        UITabBar.appearance().itemPositioning = .fill
-        
-        UITabBar.appearance().standardAppearance = tabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+//        UITabBar.appearance().itemPositioning = .fill
+//        
+//        UITabBar.appearance().standardAppearance = tabBarAppearance
+//        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
 }
 

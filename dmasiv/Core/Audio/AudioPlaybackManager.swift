@@ -22,6 +22,7 @@ class AudioPlaybackManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             try? session.setActive(true)
         }
     }
+    
 
     func togglePlayPause() {
         if isPlaying {
@@ -37,6 +38,7 @@ class AudioPlaybackManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isPlaying = true
         
         timer?.invalidate()
+  
         timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
             guard let self = self, let player = self.audioPlayer else { return }
             self.currentTime = player.currentTime

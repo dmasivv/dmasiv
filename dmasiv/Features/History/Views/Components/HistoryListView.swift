@@ -5,15 +5,14 @@ struct HistoryListView: View {
     let onSelect: (RecordingItem) -> Void
 
     var body: some View {
-        List {
+        LazyVStack(spacing: 10) {
             ForEach(recordings) { recording in
                 RecordingRow(recording: recording) {
                     onSelect(recording) // Lempar lagu yang ditekan ke tampilan utama
                 }
-                .cardStyleRow()
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 20)
     }
 }
