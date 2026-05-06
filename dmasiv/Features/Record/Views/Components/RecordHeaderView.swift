@@ -6,50 +6,42 @@ import SwiftUI
 
 /// Header: album art (kiri) + judul & artis (kanan).
 /// HIG: minimum 44pt tap target, SF Rounded for consistency, 20pt edge insets.
-struct RecordHeaderViewV2: View {
-    let song: Song
+    struct RecordHeaderViewV2: View {
+        let song: Song
+        @Environment(\.dismiss) var dismiss
 
-    var body: some View {
-        HStack(spacing: 16) {
-            // Album art atau placeholder — 100×100 (HIG: prominent media)
-            Group {
-                if let imageName = song.coverImageName,
-                   let uiImage = UIImage(named: imageName) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppColors.albumArtTop,
-                                             AppColors.albumArtBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                        Image(systemName: "music.note")
-                            .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(AppColors.lyricActive.opacity(0.8))
+        var body: some View {
+            ZStack {
+                // Tombol Back di kiri
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 40, height: 40)
                     }
+                    .glassEffect(.regular.interactive())
+                    Spacer()
                 }
-            }
-            .frame(width: 100, height: 100)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(song.title)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(AppColors.lyricActive)
-                Text(song.artist)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(AppColors.lyricSubtitle)
+                // Judul dan Artis di tengah
+                VStack(spacing: 4) {
+                    Text(song.title)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(AppColors.lyricActive)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Text(song.artist)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundColor(AppColors.lyricSubtitle)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 50) // Agar tidak menabrak tombol back
             }
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
         }
-        .padding(.horizontal, 35)  // HIG: consistent 30pt edge inset
-        .padding(.top, 15)
     }
-}

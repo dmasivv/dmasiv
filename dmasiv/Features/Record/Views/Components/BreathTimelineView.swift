@@ -110,6 +110,6 @@ struct BreathTimelineView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
-        .frame(height: 46)
+        .frame(height: 60)
     }
 }

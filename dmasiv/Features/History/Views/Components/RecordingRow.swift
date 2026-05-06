@@ -42,7 +42,8 @@ struct RecordingRow: View {
                     Text(matchedSong?.title ?? recording.name)
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
-                        .lineLimit(2)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     
                     Text(matchedSong?.artist ?? "Unknown Artist")
                         .font(.system(size: 14))

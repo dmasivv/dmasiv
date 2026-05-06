@@ -29,7 +29,14 @@ struct LyricCardViewV2: View {
                 .padding(.horizontal, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .liquidGlassBox(cornerRadius: 22)
+            .background(
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color(white: 0.1).opacity(0.3))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1.0)
+                    )
+            )
             .onChange(of: viewModel.currentLyricIndex) { newIndex in
                 if let idx = newIndex {
                     withAnimation(.easeInOut(duration: 0.4)) {
@@ -81,53 +88,17 @@ struct LyricRowWithBarView: View {
                     }
                 }
             } else {
-                // ── Baris lirik normal (Sweep Effect) ──────────────────
-                ZStack(alignment: .leading) {
-                    // Teks dasar (abu-abu/redup)
-                    Text(lyric.text)
-                        .font(.system(
-                            size: isCurrent ? 30 : 26,
-                            weight: isCurrent ? .bold : .regular,
-                            design: .rounded
-                        ))
-                        .foregroundColor(.white.opacity(0.40))
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.85)
-
-                    // Teks aktif (putih terang) yang menyapu dari kiri ke kanan
-                    Text(lyric.text)
-                        .font(.system(
-                            size: isCurrent ? 30 : 26,
-                            weight: isCurrent ? .bold : .regular,
-                            design: .rounded
-                        ))
-                        .foregroundColor(.white)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.85)
-                        .mask(
-                            GeometryReader { geo in
-                                Rectangle()
-                                    // Menyapu sesuai progress hanya jika baris ini sedang dinyanyikan
-                                    .frame(width: max(0, geo.size.width * (isCurrent ? progress : 0.0)))
-                            }
-                        )
-                }
-                // ── Baris lirik normal (TANPA bar) ──────────────────
+                // ── Baris lirik normal (Highlight Full) ──────────────────
                 Text(lyric.text)
                     .font(.system(
                         size: isCurrent ? 30 : 26,
                         weight: isCurrent ? .bold : .regular,
                         design: .rounded
                     ))
-                    .foregroundColor(isCurrent ? AppColors.lyricActive : AppColors.lyricInactive)
+                    .foregroundColor(isCurrent ? .white : .white.opacity(0.40))
                     .lineLimit(3)
                     .minimumScaleFactor(0.85)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .top).combined(with: .opacity)
-                        )
-                    )
+                    .animation(.easeInOut(duration: 0.2), value: isCurrent)
             }
         }
         .padding(.vertical, 10)

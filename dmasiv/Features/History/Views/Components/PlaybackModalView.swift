@@ -44,23 +44,33 @@ struct PlaybackModalView: View {
                 .padding(.horizontal, 32)
 
                 // Kontrol Playback (Prev 10s, Play/Pause, Next 10s)
-                HStack(spacing: 40) {
-                    Button(action: { manager.skipBackward() }) {
-                        Image(systemName: "gobackward.10")
-                            .font(.system(size: 28))
-                    }
+                GlassEffectContainer(spacing: 32) {
+                    HStack(spacing: 32) {
+                        Button(action: { manager.skipBackward() }) {
+                            Image(systemName: "gobackward.10")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .frame(width: 52, height: 52)
+                        }
+                        .glassEffect(.regular.interactive())
 
-                    Button(action: { manager.togglePlayPause() }) {
-                        Image(systemName: manager.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.system(size: 64))
-                    }
+                        Button(action: { manager.togglePlayPause() }) {
+                            Image(systemName: manager.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                                .frame(width: 72, height: 72)
+                        }
+                        .glassEffect(.regular.interactive())
 
-                    Button(action: { manager.skipForward() }) {
-                        Image(systemName: "goforward.10")
-                            .font(.system(size: 28))
+                        Button(action: { manager.skipForward() }) {
+                            Image(systemName: "goforward.10")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .frame(width: 52, height: 52)
+                        }
+                        .glassEffect(.regular.interactive())
                     }
                 }
-                .foregroundColor(.blue)
 
                 Spacer()
             }
@@ -71,6 +81,7 @@ struct PlaybackModalView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Tutup") { dismiss() }
+                        .foregroundColor(.white)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -81,7 +92,7 @@ struct PlaybackModalView: View {
                         }
                     }) {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(.white)
                     }
                 }
             }

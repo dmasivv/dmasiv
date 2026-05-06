@@ -101,20 +101,17 @@ struct WaveformVisualizerViewV2: View {
             ForEach(0..<viewModel.audioLevels.count, id: \.self) { index in
                 let level = viewModel.audioLevels[index]
 
-                let smoothLevel = max(0, level - 0.05) // Sedikit noise gate (opsional)
-                let barHeight: CGFloat = max(2.0, smoothLevel * 100.0)
+                let smoothLevel = max(0, level - 0.05)
+                let maxBarHeight: CGFloat = 100.0
+                let barHeight: CGFloat = min(maxBarHeight, max(2, smoothLevel * 100.0))
 
                 RoundedRectangle(cornerRadius: 2.5)
-                    .fill(
-                        viewModel.isRecording
-                        ? AppColors.waveformActive
-                        : AppColors.waveformIdle
-                    )
+                    .fill(Color.white)
                     .frame(width: 3.0, height: barHeight)
                     .animation(.easeOut(duration: 0.15), value: barHeight)
             }
         }
-        .frame(height: 100.0)
+        .frame(height: 80.0)
     }
 }
 
@@ -122,78 +119,41 @@ struct WaveformVisualizerViewV2: View {
 // MARK: - V2 Record Controls (Replay + Mic/Pause)
 // ============================================================
 
-/// Bottom control bar — HIG: min 44pt tap targets, primary action centered.
-/// - Mic/Pause: centered di tengah layar secara horizontal
-/// - Replay: di kiri tombol Mic
+/// Bottom control bar menggunakan glassEffect (iOS 26+).
 struct RecordControlsViewV2: View {
     @ObservedObject var viewModel: RecordViewModel
     @Binding var navigateToResult: Bool
 
     var body: some View {
         ZStack {
-            // ── Mic / Pause (centered horizontal) ────────────────────────
-            Button(action: {
-                viewModel.togglePlayAndRecord()
-            }) {
-                ZStack {
-                    // Background gradasi dalam tombol
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [AppColors.buttonBlueTop,
-                                         AppColors.buttonBlueBottom],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 90, height: 90)
-
-                    // Outer ring tebal solid putih
-                    Circle()
-                        .stroke(AppColors.lyricActive, lineWidth: 4.5)
-                        .frame(width: 90, height: 90)
-
-                    // Icon putih tebal tanpa fill background
-                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic.fill")
-                        .font(.system(size: 44, weight: .bold))
-                        .foregroundColor(AppColors.lyricActive)
-                }
-            }
-
-            // ── Replay (kiri dari mic) ────────────────────────────────────
+            // ── Replay (Kiri) ──────────────────────────────────────────────
             HStack {
                 Button(action: {
                     viewModel.replayRecording()
                 }) {
-                    ZStack {
-                        // Background gradasi dalam tombol
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppColors.buttonBlueTop,
-                                             AppColors.buttonBlueBottom],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 52, height: 52)
-
-                        // Border tipis solid putih
-                        Circle()
-                            .stroke(AppColors.lyricActive, lineWidth: 1.2)
-                            .frame(width: 52, height: 52)
-
-                        // Icon arrow tebal solid putih
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(AppColors.lyricActive)
-                    }
+                    Image(systemName: "arrow.trianglehead.clockwise")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 65, height: 65)
                 }
-                .padding(.leading, 75)
+                .glassEffect(.regular.interactive())
+                .padding(.leading, 75) // Sesuaikan jarak dari layar kiri
 
                 Spacer()
             }
+
+            // ── Mic / Pause (Tengah) ─────────────────────────────────────────
+            Button(action: {
+                viewModel.togglePlayAndRecord()
+            }) {
+                Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 95, height: 95)
+            }
+            .glassEffect(.regular.interactive())
         }
         .frame(maxWidth: .infinity)
+        .padding(.bottom, 8)
     }
 }

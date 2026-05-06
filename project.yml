@@ -2,15 +2,15 @@ name: dmasiv
 options:
   bundleIdPrefix: com.dmasiv
   deploymentTarget:
-    iOS: "17.0"
-  xcodeVersion: "16.0"
+    iOS: "26.0"
+  xcodeVersion: "26.0"
   createIntermediateGroups: true
 
 targets:
   dmasiv:
     type: application
     platform: iOS
-    deploymentTarget: "17.0"
+    deploymentTarget: "26.0"
     sources:
       - path: dmasiv
         excludes:
