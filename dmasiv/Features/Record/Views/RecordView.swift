@@ -6,19 +6,22 @@ import SwiftUI
 /// All sub-views live in `RecordView-UIComponents.swift`.
 struct RecordView: View {
     let song: Song
+    
+    // 1. Terima binding dari SongListView untuk sinkronisasi Tab & Modal
+    @Binding var selectedTab: Int
+    @Binding var shouldAutoPlayNewest: Bool
+    
     @StateObject private var viewModel = RecordViewModel()
     @State private var navigateToResult = false
+    
+    // 2. Gunakan environment untuk menutup (dismiss) halaman ini
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ZStack {
             // ── Background solid sesuai SongListView ──
             Color(red: 0.04, green: 0.06, blue: 0.14)
                 .ignoresSafeArea()
-
-            // Hidden Navigation ke Page 3
-            NavigationLink(destination: Text("Halaman Result"), isActive: $navigateToResult) {
-                EmptyView()
-            }
 
             VStack(spacing: 16) {
                 // ── Header: Album Art + Judul + Artis ─────────────────────
@@ -48,8 +51,6 @@ struct RecordView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Menyembunyikan background bawaan navigation bar agar gradient bisa tembus ke atas
         .toolbarBackground(.hidden, for: .navigationBar)
-        // Jika tidak ingin ada tulisan 'Back' yang mengganggu, bisa gunakan custom back atau hide toolbar
-        // .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             // Mencegah Preview (Canvas) minta izin Mic yang bisa bikin Crash
             if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
@@ -57,9 +58,38 @@ struct RecordView: View {
             }
             viewModel.loadSong(song)
         }
+        // ── LISTENER 1: Saat tombol manual STOP (kotak) diklik ──
+        .onChange(of: navigateToResult) { oldValue, newValue in
+            if newValue {
+                // Aktifkan sinyal auto-play
+                shouldAutoPlayNewest = true
+                
+                // Tutup halaman RecordView (akan kembali ke Library)
+                dismiss()
+                // Pindah secara otomatis ke Tab History
+                selectedTab = 1
+            }
+        }
+        // ── LISTENER 2: Saat lagu selesai dengan sendirinya (Auto-Stop) ──
+        .onChange(of: viewModel.isSongFinished) { oldValue, newValue in
+            if newValue {
+                // Aktifkan sinyal auto-play
+                shouldAutoPlayNewest = true
+                
+                // Tutup halaman RecordView (akan kembali ke Library)
+                dismiss()
+                // Pindah secara otomatis ke Tab History
+                selectedTab = 1
+            }
+        }
     }
 }
 
 #Preview {
-    RecordView(song: .Januari)
+    // Berikan nilai konstan untuk keperluan preview Canvas
+    RecordView(
+        song: .Januari, // Ganti dengan dummy lagu kamu jika error
+        selectedTab: .constant(0),
+        shouldAutoPlayNewest: .constant(false)
+    )
 }

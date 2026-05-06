@@ -131,9 +131,17 @@ struct RecordControlsViewV2: View {
 
     var body: some View {
         ZStack {
-            // ── Mic / Pause (centered horizontal) ────────────────────────
+            // ── Mic / Stop (centered horizontal) ────────────────────────
             Button(action: {
-                viewModel.togglePlayAndRecord()
+                if viewModel.isPlaying {
+                    // Jika lagu sedang berjalan, Stop rekaman
+                    viewModel.stopRecording()
+                    // Ubah state binding untuk exit ke HistoryView / Result page
+                    navigateToResult = true
+                } else {
+                    // Jika belum berjalan, Start rekaman
+                    viewModel.startRecording()
+                }
             }) {
                 ZStack {
                     // Background gradasi dalam tombol
@@ -154,7 +162,8 @@ struct RecordControlsViewV2: View {
                         .frame(width: 90, height: 90)
 
                     // Icon putih tebal tanpa fill background
-                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic.fill")
+                    // Ganti icon menjadi "stop.fill" (kotak) agar user tahu ini tombol stop, bukan pause
+                    Image(systemName: viewModel.isPlaying ? "stop.fill" : "mic.fill")
                         .font(.system(size: 44, weight: .bold))
                         .foregroundColor(AppColors.lyricActive)
                 }
