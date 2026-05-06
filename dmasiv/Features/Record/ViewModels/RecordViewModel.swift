@@ -17,6 +17,9 @@ class RecordViewModel: ObservableObject {
     @Published var savedRecordingURL: URL? = nil
     /// Flag to show a "recording saved" confirmation
     @Published var showSavedConfirmation = false
+    
+    /// Flag untuk mendeteksi jika lagu sudah selesai diputar
+    @Published var isSongFinished = false
 
     @Published var currentPitch: String = "--"
     @Published var currentMidiNote: Float = 0.0
@@ -87,7 +90,7 @@ class RecordViewModel: ObservableObject {
 
     func togglePlayAndRecord() {
         if isPlaying {
-            pauseRecording()   // CHANGED: pause di posisi saat ini, tidak reset ke awal
+            pauseRecording()   // pause di posisi saat ini, tidak reset ke awal
         } else {
             startRecording()
         }
@@ -168,6 +171,9 @@ class RecordViewModel: ObservableObject {
                 hasEverStarted = true
             }
 
+            // Reset flag penanda lagu selesai
+            isSongFinished = false
+
             try pitchTracker.start()
 
             // Start recording the user's voice
@@ -191,12 +197,20 @@ class RecordViewModel: ObservableObject {
     private func updatePlaybackProgress() {
         if let player = audioPlayer {
             currentTime = player.currentTime
+            
+            // CEK OTOMATIS: Jika waktu saat ini sudah mencapai akhir lagu
+            if let duration = songDuration, currentTime >= duration - 0.05 {
+                stopRecording()
+                isSongFinished = true // Picu perpindahan layar otomatis
+                return
+            }
         } else {
             currentTime += 0.016
         }
+        
         recordingDuration += 0.016
 
-        // Update Active Lyric (sama seperti prototype MIDIPlayerManager)
+        // Update Active Lyric
         if let currentL = lyricsData.first(where: { currentTime >= $0.startTime && currentTime <= $0.endTime }) {
             if activeLyric?.id != currentL.id {
                 activeLyric = currentL

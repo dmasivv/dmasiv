@@ -16,19 +16,29 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("History")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
 
-                if viewModel.recordings.isEmpty {
-                    HistoryEmptyView()
-                } else {
-                    HistoryListView(recordings: viewModel.recordings) { recording in
-                        selectedRecording = recording
+                    if viewModel.recordings.isEmpty {
+                        HistoryEmptyView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else {
+                        HistoryListView(recordings: viewModel.recordings) { recording in
+                            selectedRecording = recording
+                        }
                     }
                 }
             }
-            .navigationTitle("History")
+            .background(bgColor.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+            .preferredColorScheme(.dark)
             .onAppear {
                 viewModel.fetchRecordings()
                 checkAutoPlaySignal() // Cek saat tab History baru pertama kali dirender
@@ -85,4 +95,5 @@ struct HistoryView: View {
 #Preview {
     // Berikan nilai dummy .constant(false) agar Preview tidak error
     HistoryView(shouldAutoPlayNewest: .constant(false))
+        .preferredColorScheme(.dark)
 }
