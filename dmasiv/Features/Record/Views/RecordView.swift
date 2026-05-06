@@ -13,6 +13,8 @@ struct RecordView: View {
     
     @StateObject private var viewModel = RecordViewModel()
     @State private var navigateToResult = false
+    @State private var showTimelineOnboarding = false
+    @State private var hasShownOnboardingThisSession = false
     
     // 2. Gunakan environment untuk menutup (dismiss) halaman ini
     @Environment(\.dismiss) private var dismiss
@@ -47,7 +49,37 @@ struct RecordView: View {
                 RecordControlsViewV2(viewModel: viewModel, navigateToResult: $navigateToResult)
             }
 
+            if showTimelineOnboarding {
+                // Dim scrim — full bleed, no tap-to-dismiss
+                Color.black.opacity(0.55)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+
+                // Onboarding card
+                TimelineOnboardingView(
+                    onDismiss: {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            showTimelineOnboarding = false
+                        }
+                    },
+                    onNeverShow: {
+                        UserDefaults.standard.set(true, forKey: "hasSeenTimelineOnboarding")
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            showTimelineOnboarding = false
+                        }
+                    }
+                )
+                .transition(
+                    .asymmetric(
+                        insertion: .scale(scale: 0.88).combined(with: .opacity),
+                        removal:   .scale(scale: 0.92).combined(with: .opacity)
+                    )
+                )
+                .padding(.horizontal, 28)
+            }
+
         }
+        .animation(.spring(response: 0.45, dampingFraction: 0.75), value: showTimelineOnboarding)
         .navigationBarTitleDisplayMode(.inline)
         // Menyembunyikan background bawaan navigation bar agar gradient bisa tembus ke atas
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -57,6 +89,20 @@ struct RecordView: View {
                 viewModel.requestMicrophonePermission()
             }
             viewModel.loadSong(song)
+
+            // Defensive pause if song somehow already playing
+            if viewModel.isPlaying { viewModel.pauseRecording() }
+
+            // Show onboarding once per session, unless permanently dismissed
+            let seen = UserDefaults.standard.bool(forKey: "hasSeenTimelineOnboarding")
+            if !seen && !hasShownOnboardingThisSession {
+                hasShownOnboardingThisSession = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                        showTimelineOnboarding = true
+                    }
+                }
+            }
         }
         // ── LISTENER 1: Saat tombol manual STOP (kotak) diklik ──
         .onChange(of: navigateToResult) { oldValue, newValue in
