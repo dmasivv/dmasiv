@@ -2,6 +2,8 @@ import SwiftUI
 import AVFoundation
 
 struct HistoryView: View {
+    @Binding var shouldAutoPlayNewest: Bool
+
     @StateObject private var viewModel = HistoryViewModel()
     @StateObject private var playbackManager = AudioPlaybackManager()
 
@@ -33,9 +35,23 @@ struct HistoryView: View {
                 }
             }
             .background(Color(red: 0.04, green: 0.06, blue: 0.14).ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar) // Sembunyikan nav bar bawaan
+            .toolbar(.hidden, for: .navigationBar)
             .preferredColorScheme(.dark)
-            .onAppear { viewModel.fetchRecordings() }
+            .onAppear {
+                // Jika ada sinyal auto-play masuk (tab dibuka dari RecordView via Pause)
+                if shouldAutoPlayNewest {
+                    shouldAutoPlayNewest = false
+                    openNewest()
+                } else {
+                    viewModel.fetchRecordings()
+                }
+            }
+            // Fallback: tangkap sinyal jika History sudah ter-load sebelumnya
+            .onChange(of: shouldAutoPlayNewest) { newValue in
+                guard newValue else { return }
+                shouldAutoPlayNewest = false
+                openNewest()
+            }
 
             // Modal Lagu
             .sheet(item: $selectedRecording) { recording in
@@ -62,8 +78,31 @@ struct HistoryView: View {
             }
         }
     }
+
+    // MARK: - Helper
+
+    /// Fetch ulang daftar rekaman lalu buka modal rekaman paling baru.
+    /// Menggunakan dua tahap delay untuk memastikan file sudah tersimpan ke disk.
+    private func openNewest() {
+        // Tahap 1: coba setelah 0.4s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            viewModel.fetchRecordings()
+            if let newest = viewModel.recordings.first {
+                selectedRecording = newest
+                return
+            }
+            // Tahap 2: jika belum ada (file masih ditulis), coba lagi setelah 1.2s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                viewModel.fetchRecordings()
+                if let newest = viewModel.recordings.first {
+                    selectedRecording = newest
+                }
+            }
+        }
+    }
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(shouldAutoPlayNewest: .constant(false))
 }
+

@@ -122,7 +122,8 @@ struct WaveformVisualizerViewV2: View {
 /// Bottom control bar menggunakan glassEffect (iOS 26+).
 struct RecordControlsViewV2: View {
     @ObservedObject var viewModel: RecordViewModel
-    @Binding var navigateToResult: Bool
+    /// Dipanggil saat pengguna menekan tombol Pause (sedang merekam → berhenti)
+    var onPause: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -137,14 +138,20 @@ struct RecordControlsViewV2: View {
                         .frame(width: 65, height: 65)
                 }
                 .glassEffect(.regular.interactive())
-                .padding(.leading, 75) // Sesuaikan jarak dari layar kiri
+                .padding(.leading, 75)
 
                 Spacer()
             }
 
             // ── Mic / Pause (Tengah) ─────────────────────────────────────────
             Button(action: {
-                viewModel.togglePlayAndRecord()
+                if viewModel.isPlaying {
+                    // Tombol Pause ditekan saat sedang merekam → navigasi ke History
+                    onPause()
+                } else {
+                    // Tombol Mic ditekan saat idle → mulai rekam
+                    viewModel.togglePlayAndRecord()
+                }
             }) {
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "mic")
                     .font(.system(size: 36, weight: .medium))

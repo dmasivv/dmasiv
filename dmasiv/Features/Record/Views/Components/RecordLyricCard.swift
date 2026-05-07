@@ -30,12 +30,32 @@ struct LyricCardViewV2: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(Color(white: 0.1).opacity(0.3))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1.0)
-                    )
+                ZStack {
+                    // Fill utama
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color(white: 0.1).opacity(0.3))
+
+                    // Border luar: gradient biru-abu dari atas ke bawah
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.25),
+                                    Color(red: 0.18, green: 0.22, blue: 0.38).opacity(0.6),
+                                    Color(red: 0.12, green: 0.15, blue: 0.28).opacity(0.3)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1.5
+                        )
+
+                    // Inner glow halus
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color.white.opacity(0.06), lineWidth: 4)
+                        .blur(radius: 3)
+                        .mask(RoundedRectangle(cornerRadius: 24))
+                }
             )
             .onChange(of: viewModel.currentLyricIndex) { newIndex in
                 if let idx = newIndex {

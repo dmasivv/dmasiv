@@ -5,17 +5,23 @@ struct SongListView: View {
     @State private var expandedSongID: UUID? = nil
     @State private var navigateToSong: Song? = nil
 
+    // Sinyal navigasi antar-tab
+    @State private var selectedTab: Int = 0
+    @State private var shouldAutoPlayNewest: Bool = false
+
     private let bgColor = Color(red: 0.04, green: 0.06, blue: 0.14)
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             homeTab
                 .tabItem { Label("Home", systemImage: "house.fill") }
+                .tag(0)
                 .toolbarBackground(Color(red: 0.06, green: 0.08, blue: 0.18), for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
 
             historyTab
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
+                .tag(1)
                 .toolbarBackground(Color(red: 0.06, green: 0.08, blue: 0.18), for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
         }
@@ -75,15 +81,19 @@ extension SongListView {
             .toolbar(.hidden, for: .navigationBar)
             .preferredColorScheme(.dark)
             .navigationDestination(item: $navigateToSong) { song in
-                RecordView(song: song)
-                    .toolbar(.hidden, for: .tabBar)
+                RecordView(
+                    song: song,
+                    selectedTab: $selectedTab,
+                    shouldAutoPlayNewest: $shouldAutoPlayNewest
+                )
+                .toolbar(.hidden, for: .tabBar)
             }
         }
     }
 
     private var historyTab: some View {
         NavigationStack {
-            HistoryView()
+            HistoryView(shouldAutoPlayNewest: $shouldAutoPlayNewest)
         }
     }
 }

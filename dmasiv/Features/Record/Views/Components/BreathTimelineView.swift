@@ -41,8 +41,26 @@ struct BreathTimelineView: View {
                     Spacer()
                 }
 
-                // Exhale Markers (Lirik yang dinyanyikan - Warna Biru Solid)
+                // Exhale Markers (Lirik yang dinyanyikan - Liquid Glass Abu-abu)
                 ForEach(viewModel.allLyrics) { marker in
+                    let timeDiff = marker.startTime - viewModel.currentTime
+                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
+                    let duration = marker.endTime - marker.startTime
+                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
+
+                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
+                        // Efek Liquid Glass: transparan dengan border tipis
+                        Capsule()
+                            .fill(Color.white.opacity(0.01))
+                            .background(Capsule().fill(.ultraThinMaterial))
+                            .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
+                            .frame(width: width, height: 18)
+                            .position(x: xPos + (width / 2), y: trackHeight / 2)
+                    }
+                }
+
+                // Inhale Markers (Ambil Napas - Biru Solid)
+                ForEach(viewModel.breathMarkers) { marker in
                     let timeDiff = marker.startTime - viewModel.currentTime
                     let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
                     let duration = marker.endTime - marker.startTime
@@ -51,24 +69,6 @@ struct BreathTimelineView: View {
                     if (xPos + width) > -50 && xPos < geo.size.width + 100 {
                         Capsule()
                             .fill(Color(red: 0.22, green: 0.41, blue: 0.85)) // Biru solid
-                            .frame(width: width, height: 18)
-                            .position(x: xPos + (width / 2), y: trackHeight / 2)
-                    }
-                }
-
-                // Inhale Markers (Ambil Napas - Warna Liquid Glass)
-                ForEach(viewModel.breathMarkers) { marker in
-                    let timeDiff = marker.startTime - viewModel.currentTime
-                    let xPos = playheadX + CGFloat(timeDiff) * pixelsPerSecond
-                    let duration = marker.endTime - marker.startTime
-                    let width = max(16.0, CGFloat(duration) * pixelsPerSecond)
-
-                    if (xPos + width) > -50 && xPos < geo.size.width + 100 {
-                        // Desain efek Liquid Glass pada Capsule
-                        Capsule()
-                            .fill(Color.white.opacity(0.1))
-                            .background(Capsule().fill(.ultraThinMaterial))
-                            .overlay(Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1))
                             .frame(width: width, height: 18)
                             .position(x: xPos + (width / 2), y: trackHeight / 2)
                     }

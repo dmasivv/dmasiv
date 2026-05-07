@@ -61,15 +61,16 @@ struct RecordingRow: View {
                 
                 Spacer()
                 
-                // Ikon Menu (Hamburger)
+                // Ikon Menu (Play)
                 ZStack {
                     Circle()
                         .fill(menuBg)
                         .frame(width: 32, height: 32)
                     
-                    Image(systemName: "line.3.horizontal")
+                    Image(systemName: "play.fill")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white.opacity(0.7))
+                        .offset(x: 1, y: 0) // Sedikit geser ke kanan agar visually center di dalam lingkaran
                 }
             }
             .padding(.horizontal, 14)
