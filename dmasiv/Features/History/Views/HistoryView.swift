@@ -2,6 +2,7 @@ import SwiftUI
 import AVFoundation
 
 struct HistoryView: View {
+    @Binding var shouldAutoPlayNewest: Bool
     @StateObject private var viewModel = HistoryViewModel()
     @StateObject private var playbackManager = AudioPlaybackManager()
 
@@ -65,5 +66,5 @@ struct HistoryView: View {
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(shouldAutoPlayNewest: .constant(false))
 }
