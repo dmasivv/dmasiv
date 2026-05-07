@@ -40,7 +40,8 @@ struct SongCard: View {
                 Text(song.title)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
-                    .lineLimit(2)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
 
                 Text(song.artist)
                     .font(.system(size: 14))
