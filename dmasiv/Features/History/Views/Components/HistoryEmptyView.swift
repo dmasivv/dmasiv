@@ -5,10 +5,10 @@ struct HistoryEmptyView: View {
         VStack(spacing: 16) {
             Image(systemName: "waveform")
                 .font(.system(size: 40))
-                .foregroundColor(.secondary)
+                .foregroundColor(.white)
             Text("Belum ada rekaman")
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(.white)
         }
     }
 }

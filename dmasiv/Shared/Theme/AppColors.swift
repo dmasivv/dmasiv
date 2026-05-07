@@ -5,6 +5,15 @@ import SwiftUI
 
 struct AppColors {
 
+    // ── Card / Overlay Surfaces ───────────────────────────────────────────
+    /// Dark navy fill for floating cards (e.g. onboarding popup)
+    static let cardSurface          = Color(red: 0.06, green: 0.09, blue: 0.20)
+
+    // ── Timeline Capsule Colors ───────────────────────────────────────────
+    /// Breath / exhale capsule on the timeline
+    static let timelineBreath       = AppColors.accentBlue
+    /// Sing / lyric capsule on the timeline — glass style (no solid color token needed)
+    static let timelineSing         = Color.white.opacity(0.1)
     // ── Background Gradient (RecordView) ──────────────────────────────────
     /// Top of the background gradient
     static let backgroundTop    = Color(red: 0.16, green: 0.25, blue: 0.50)

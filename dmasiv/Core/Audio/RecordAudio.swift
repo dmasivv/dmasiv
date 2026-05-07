@@ -135,11 +135,25 @@ struct RecordingItem: Identifiable {
     var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file)
     }
+
+    var formattedDuration: String {
+        let asset = AVURLAsset(url: url)
+        let seconds = Int(CMTimeGetSeconds(asset.duration))
+        let m = seconds / 60
+        let s = seconds % 60
+        return String(format: "%d:%02d", m, s)
+    }
     
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
+        return formatter.string(from: createdAt)
+    }
+
+    var shortFormattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM · h:mm a"
         return formatter.string(from: createdAt)
     }
 }

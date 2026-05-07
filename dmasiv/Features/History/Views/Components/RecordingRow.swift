@@ -86,4 +86,28 @@ struct RecordingRow: View {
         }
         .buttonStyle(.plain)
     }
+
+    @ViewBuilder
+    private var albumCover: some View {
+        if let coverName = matchedSong?.coverImageName {
+            Image(coverName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 65, height: 65)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        } else {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(LinearGradient(
+                    colors: [AppColors.albumArtTop, AppColors.albumArtBottom],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(width: 65, height: 65)
+                .overlay(
+                    Image(systemName: "music.note")
+                        .font(.system(size: 65 * 0.3))
+                        .foregroundColor(.white.opacity(0.4))
+                )
+        }
+    }
 }

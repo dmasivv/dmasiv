@@ -40,8 +40,7 @@ struct SongCard: View {
                 Text(song.title)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                    .lineLimit(2)
 
                 Text(song.artist)
                     .font(.system(size: 14))
@@ -88,8 +87,6 @@ struct SongCard: View {
             Text(song.title)
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(.white)
-                .lineLimit(1)
-                .truncationMode(.tail)
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
 
@@ -117,27 +114,25 @@ struct SongCard: View {
             }
 
             // Action buttons
-            GlassEffectContainer(spacing: 14) {
-                HStack(spacing: 14) {
-                    Button(action: onPlay) {
-                        Text("Play")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 13)
-                            .padding(.horizontal, 20)
-                    }
-                    .glassEffect(.regular.tint(.blue).interactive())
+            HStack(spacing: 14) {
+                Button(action: onPlay) {
+                    Text("Play")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(Capsule().fill(AppColors.accentBlue))
+                }
 
-                    Button(action: {}) {
-                        Text("Edit")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 13)
-                            .padding(.horizontal, 20)
-                    }
-                    .glassEffect(.regular.interactive())
+                Button(action: {}) {
+                    Text("Edit")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(red: 0.55, green: 0.60, blue: 0.72))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                        .background(
+                            Capsule().stroke(cardBorder, lineWidth: 1.5)
+                        )
                 }
             }
             .padding(.horizontal, 20)
@@ -174,11 +169,13 @@ struct SongCard: View {
     }
 
     private func chevronCircle(isUp: Bool) -> some View {
-        Image(systemName: isUp ? "chevron.up" : "chevron.down")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundColor(.white)
-            .frame(width: 34, height: 34)
-            .glassEffect(.regular.interactive())
+        ZStack {
+            Circle().fill(chevronBg)
+            Image(systemName: isUp ? "chevron.up" : "chevron.down")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(Color(red: 0.55, green: 0.60, blue: 0.72))
+        }
+        .frame(width: 34, height: 34)
     }
 
     private func tagPill(_ text: String) -> some View {
